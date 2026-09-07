@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f3ec">
+  <meta name="description" content="A calm, phone-friendly personal task dashboard.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Personal Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #252923;
+      --muted: #697168;
+      --paper: #fffefa;
+      --canvas: #f3f0e8;
+      --line: #dedbd1;
+      --today: #d1e5f9;
+      --week: #d6efd6;
+      --month: #f9eacc;
+      --parking: #eadbf4;
+      --data: #dfe5df;
+      --accent: #315f4b;
+      --shadow: 0 10px 30px rgba(45, 52, 45, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--canvas); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.8), transparent 38%),
+        var(--canvas);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font: inherit; }
+
+    button, select, input[type="checkbox"] { touch-action: manipulation; }
+
+    .app {
+      width: min(100%, 620px);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: rgba(255, 254, 250, .92);
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      padding: max(18px, env(safe-area-inset-top)) 18px 13px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.55rem, 7vw, 2.05rem);
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+
+    #saveStatus {
+      color: var(--muted);
+      font-size: .78rem;
+      white-space: nowrap;
+    }
+
+    nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 11px 14px;
+      background: rgba(255, 254, 250, .96);
+      border-bottom: 1px solid var(--line);
+      scrollbar-width: none;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    nav::-webkit-scrollbar { display: none; }
+
+    .tab {
+      min-height: 42px;
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    main { padding: 16px 14px calc(28px + env(safe-area-inset-bottom)); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 16px 17px;
+      border-radius: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+      letter-spacing: -.015em;
+    }
+
+    .section-head span {
+      color: rgba(37, 41, 35, .66);
+      font-size: .8rem;
+      font-weight: 650;
+    }
+
+    .today .section-head { background: var(--today); }
+    .week .section-head { background: var(--week); }
+    .month .section-head { background: var(--month); }
+    .parking .section-head { background: var(--parking); }
+    .data .section-head { background: var(--data); }
+
+    .task-list { display: grid; gap: 10px; }
+
+    .task {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 66px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      transition: opacity .18s ease, background .18s ease;
+    }
+
+    .task.done { opacity: .48; background: #f2f1ec; }
+    .task.done .task-control { text-decoration: line-through; }
+
+    .check {
+      width: 27px;
+      height: 27px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .task-body { min-width: 0; }
+
+    .day-label {
+      display: block;
+      margin: 0 0 5px 2px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 750;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .task-control {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 11px;
+      border: 1px solid #cbc9c0;
+      border-radius: 11px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    select.task-control { padding-right: 34px; }
+
+    .helper {
+      margin: -4px 3px 16px;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.4;
+    }
+
+    .data-groups { display: grid; gap: 16px; }
+
+    .data-group {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+    }
+
+    .data-group h3 { margin: 1px 2px 10px; font-size: 1rem; }
+
+    .choice-list { display: grid; gap: 8px; }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      align-items: center;
+      gap: 7px;
+    }
+
+    .choice-row label { color: var(--muted); font-size: .78rem; text-align: right; }
+
+    .choice-row input {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid #cfcdc4;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .today-data { border-left: 6px solid var(--today); }
+    .week-data { border-left: 6px solid var(--week); }
+    .month-data { border-left: 6px solid var(--month); }
+    .parking-data { border-left: 6px solid var(--parking); }
+
+    :focus-visible { outline: 3px solid rgba(49, 95, 75, .38); outline-offset: 2px; }
+
+    @media (min-width: 621px) {
+      body { padding: 28px 0; }
+      .app { min-height: calc(100vh - 56px); border-radius: 24px; overflow: clip; }
+      main { padding-inline: 22px; }
+      nav { padding-inline: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-row">
+        <h1>Personal Dashboard</h1>
+        <span id="saveStatus" aria-live="polite">Saved on this device</span>
+      </div>
+    </header>
+
+    <nav aria-label="Dashboard sections">
+      <button class="tab" data-tab="today" aria-selected="true">Today</button>
+      <button class="tab" data-tab="week" aria-selected="false">This Week</button>
+      <button class="tab" data-tab="month" aria-selected="false">This Month</button>
+      <button class="tab" data-tab="parking" aria-selected="false">Parking Lot</button>
+      <button class="tab" data-tab="data" aria-selected="false">Data</button>
+    </nav>
+
+    <main id="main"></main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "personal-dashboard-v1";
+    const sections = [
+      { id: "today", title: "Today", className: "today", note: "5 items" },
+      { id: "week", title: "This Week", className: "week", note: "Monday–Friday", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
+      { id: "month", title: "This Month", className: "month", note: "5 items" },
+      { id: "parking", title: "Parking Lot", className: "parking", note: "5 items" }
+    ];
+
+    const blankChoices = () => Array(15).fill("");
+    const defaults = {
+      choices: {
+        today: blankChoices(),
+        week: blankChoices(),
+        month: blankChoices(),
+        parking: blankChoices()
+      },
+      tasks: {
+        today: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
+        week: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
+        month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
+        parking: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
+      }
+    };
+
+    function normalizedState(candidate) {
+      const fresh = structuredClone(defaults);
+      if (!candidate || typeof candidate !== "object") return fresh;
+      for (const section of sections) {
+        const id = section.id;
+        if (Array.isArray(candidate.choices?.[id])) {
+          fresh.choices[id] = candidate.choices[id].slice(0, 15).map(value => String(value ?? ""));
+          while (fresh.choices[id].length < 15) fresh.choices[id].push("");
+        }
+        if (Array.isArray(candidate.tasks?.[id])) {
+          fresh.tasks[id] = fresh.tasks[id].map((fallback, index) => {
+            const task = candidate.tasks[id][index];
+            return task ? { ...fallback, done: Boolean(task.done), value: String(task.value ?? "") } : fallback;
+          });
+        }
+      }
+      return fresh;
+    }
+
+    function loadState() {
+      try { return normalizedState(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
+      catch { return normalizedState(null); }
+    }
+
+    let state = loadState();
+    let activeTab = "today";
+    const main = document.getElementById("main");
+    const saveStatus = document.getElementById("saveStatus");
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveStatus.textContent = "Saved";
+      clearTimeout(save.timer);
+      save.timer = setTimeout(() => saveStatus.textContent = "Saved on this device", 900);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+      })[character]);
+    }
+
+    function taskMarkup(section, task, index) {
+      const id = section.id;
+      const day = section.days?.[index];
+      const field = task.kind === "select"
+        ? `<select class="task-control" data-action="task-value" data-section="${id}" data-index="${index}" aria-label="${section.title} task ${index + 1}">
+            <option value="">Choose a task…</option>
+            ${selectOptions(state.choices[id], task.value)}
+          </select>`
+        : `<input class="task-control" data-action="task-value" data-section="${id}" data-index="${index}" type="text" value="${escapeHtml(task.value)}" placeholder="Enter a task…" aria-label="${section.title} task ${index + 1}">`;
+
+      return `<div class="task${task.done ? " done" : ""}">
+        <input class="check" data-action="task-done" data-section="${id}" data-index="${index}" type="checkbox" ${task.done ? "checked" : ""} aria-label="Mark ${section.title} task ${index + 1} complete">
+        <div class="task-body">
+          ${day ? `<span class="day-label">${day}</span>` : ""}
+          ${field}
+        </div>
+      </div>`;
+    }
+
+    function selectOptions(choices, currentValue) {
+      const values = choices.filter(Boolean);
+      if (currentValue && !values.includes(currentValue)) values.unshift(currentValue);
+      return values.map(value => `<option value="${escapeHtml(value)}" ${value === currentValue ? "selected" : ""}>${escapeHtml(value)}</option>`).join("");
+    }
+
+    function sectionMarkup(section) {
+      return `<section class="panel ${section.className}${activeTab === section.id ? " active" : ""}" data-panel="${section.id}">
+        <div class="section-head"><h2>${section.title}</h2><span>${section.note}</span></div>
+        <div class="task-list">${state.tasks[section.id].map((task, index) => taskMarkup(section, task, index)).join("")}</div>
+      </section>`;
+    }
+
+    function dataMarkup() {
+      return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
+        <div class="section-head"><h2>Data</h2><span>Dropdown choices</span></div>
+        <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
+        <div class="data-groups">
+          ${sections.map(section => `<div class="data-group ${section.id}-data">
+            <h3>${section.title}</h3>
+            <div class="choice-list">
+              ${state.choices[section.id].map((value, index) => `<div class="choice-row">
+                <label for="choice-${section.id}-${index}">${index + 1}</label>
+                <input id="choice-${section.id}-${index}" data-action="choice" data-section="${section.id}" data-index="${index}" value="${escapeHtml(value)}" placeholder="Available choice">
+              </div>`).join("")}
+            </div>
+          </div>`).join("")}
+        </div>
+      </section>`;
+    }
+
+    function render() {
+      main.innerHTML = sections.map(sectionMarkup).join("") + dataMarkup();
+      document.querySelectorAll(".tab").forEach(button => {
+        button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
+      });
+    }
+
+    document.querySelector("nav").addEventListener("click", event => {
+      const button = event.target.closest(".tab");
+      if (!button) return;
+      activeTab = button.dataset.tab;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    main.addEventListener("change", event => {
+      const control = event.target;
+      const { action, section, index } = control.dataset;
+      if (!action) return;
+      if (action === "task-done") state.tasks[section][index].done = control.checked;
+      if (action === "task-value") state.tasks[section][index].value = control.value;
+      if (action === "choice") state.choices[section][index] = control.value.trim();
+      save();
+      if (action === "task-done" || action === "choice") render();
+    });
+
+    main.addEventListener("input", event => {
+      const control = event.target;
+      const { action, section, index } = control.dataset;
+      if (action === "task-value" && control.tagName === "INPUT") {
+        state.tasks[section][index].value = control.value;
+        save();
+      }
+      if (action === "choice") {
+        state.choices[section][index] = control.value;
+        save();
+      }
+    });
+
+    render();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
+    }
+  </script>
+</body>
+</html>
