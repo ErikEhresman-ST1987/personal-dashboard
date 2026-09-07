@@ -1,0 +1,9 @@
+{
+  "name": "Personal Dashboard",
+  "short_name": "Dashboard",
+  "description": "A calm, phone-friendly personal task dashboard.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f0e8",
+  "theme_color": "#f6f3ec"
+}
