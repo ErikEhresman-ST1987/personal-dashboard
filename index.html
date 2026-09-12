@@ -613,6 +613,54 @@
 
     .data-group-content { padding: 12px 13px 13px; border-top: 1px solid var(--line); }
 
+    .backup-data { border-left: 6px solid var(--data); }
+
+    .backup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .backup-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 9px 11px;
+      border: 1px solid #bbb8ae;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .backup-button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .backup-file {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .backup-status {
+      min-height: 1.25em;
+      margin: 10px 2px 0;
+      color: var(--muted);
+      font-size: .8rem;
+      line-height: 1.35;
+    }
+
+    .backup-status.error { color: #9a3732; }
+
     .choice-list { display: grid; gap: 8px; }
 
     .choice-row {
@@ -729,6 +777,8 @@
   <script src="bible-readings.js"></script>
   <script>
     const STORAGE_KEY = "personal-dashboard-v1";
+    const BACKUP_APP_ID = "personal-dashboard";
+    const BACKUP_FORMAT_VERSION = 1;
     const sections = [
       { id: "today", title: "Today", className: "today", note: "5 items" },
       { id: "week", title: "This Week", className: "week", note: "Monday–Friday", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
@@ -899,6 +949,109 @@
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function setBackupStatus(message, isError = false) {
+      const status = document.getElementById("backupStatus");
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle("error", isError);
+    }
+
+    function backupFileName() {
+      return `personal-dashboard-backup-${localDateKey()}.json`;
+    }
+
+    function backupContents() {
+      return JSON.stringify({
+        app: BACKUP_APP_ID,
+        formatVersion: BACKUP_FORMAT_VERSION,
+        exportedAt: new Date().toISOString(),
+        data: state
+      }, null, 2);
+    }
+
+    function isValidBackup(payload) {
+      if (!payload || typeof payload !== "object") return false;
+      if (payload.app !== BACKUP_APP_ID || payload.formatVersion !== BACKUP_FORMAT_VERSION) return false;
+      if (!payload.data || typeof payload.data !== "object") return false;
+      return ["choices", "tasks", "readingDone", "shopping", "comingUp", "spiritual"]
+        .every(key => Object.prototype.hasOwnProperty.call(payload.data, key));
+    }
+
+    function downloadBackup(contents, fileName) {
+      const url = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function exportBackup() {
+      const contents = backupContents();
+      const fileName = backupFileName();
+      try {
+        if (typeof File !== "undefined" && navigator.share && navigator.canShare) {
+          const file = new File([contents], fileName, { type: "application/json" });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: "Personal Dashboard Backup" });
+            setBackupStatus("Backup share completed. Keep the JSON file somewhere safe.");
+            return;
+          }
+        }
+        downloadBackup(contents, fileName);
+        setBackupStatus(`Saved ${fileName}.`);
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          setBackupStatus("Backup canceled.");
+          return;
+        }
+        setBackupStatus("The backup could not be saved. Your dashboard data is unchanged.", true);
+      }
+    }
+
+    function readBackupFile(file) {
+      if (typeof file.text === "function") return file.text();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => resolve(String(reader.result ?? "")));
+        reader.addEventListener("error", () => reject(reader.error));
+        reader.readAsText(file);
+      });
+    }
+
+    async function restoreBackup(file) {
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        setBackupStatus("That file is too large to be a Personal Dashboard backup.", true);
+        return;
+      }
+      try {
+        const payload = JSON.parse(await readBackupFile(file));
+        if (!isValidBackup(payload)) {
+          setBackupStatus("That is not a valid Personal Dashboard backup file.", true);
+          return;
+        }
+        const exportedDate = /^\d{4}-\d{2}-\d{2}/.test(String(payload.exportedAt ?? ""))
+          ? String(payload.exportedAt).slice(0, 10)
+          : "an unknown date";
+        if (!window.confirm(`Restore the backup from ${exportedDate}? This will replace all current dashboard data.`)) {
+          setBackupStatus("Restore canceled. Your dashboard data is unchanged.");
+          return;
+        }
+        state = normalizedState(payload.data);
+        save();
+        activeTab = "data";
+        render();
+        const backupGroup = main.querySelector(".backup-data");
+        if (backupGroup) backupGroup.open = true;
+        setBackupStatus("Backup restored successfully.");
+      } catch {
+        setBackupStatus("The selected file could not be read as a dashboard backup.", true);
+      }
     }
 
     function taskMarkup(section, task, index) {
@@ -1162,9 +1315,22 @@
 
     function dataMarkup() {
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
-        <div class="section-head"><h2>Data</h2><span>Lists and stores</span></div>
+        <div class="section-head"><h2>Data</h2><span>Lists, stores, and backup</span></div>
         <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
         <div class="data-groups">
+          <details class="data-group backup-data">
+            <summary><span>Backup &amp; Restore</span><span class="group-progress">Local file</span></summary>
+            <div class="data-group-content">
+              <p class="helper">Save a complete copy of this device’s dashboard. Restoring a valid backup replaces all current dashboard data after confirmation.</p>
+              <div class="backup-actions">
+                <button class="backup-button primary" data-action="backup-export">Save Backup</button>
+                <label class="backup-button">Restore Backup
+                  <input class="backup-file" data-action="backup-restore" type="file" accept=".json,application/json">
+                </label>
+              </div>
+              <p class="backup-status" id="backupStatus" aria-live="polite"></p>
+            </div>
+          </details>
           ${sections.map(section => {
             const choiceCount = state.choices[section.id].filter(value => value.trim()).length;
             return `<details class="data-group ${section.id}-data">
@@ -1220,10 +1386,14 @@
       });
     });
 
-    main.addEventListener("click", event => {
+    main.addEventListener("click", async event => {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       const { action, store, mode } = button.dataset;
+      if (action === "backup-export") {
+        await exportBackup();
+        return;
+      }
       if (action === "shopping-store") {
         state.shopping.activeStore = Number(store);
         save();
@@ -1278,10 +1448,16 @@
       save();
     }, true);
 
-    main.addEventListener("change", event => {
+    main.addEventListener("change", async event => {
       const control = event.target;
       const { action, section, index, id, store, group, list } = control.dataset;
       if (!action) return;
+      if (action === "backup-restore") {
+        const file = control.files?.[0];
+        await restoreBackup(file);
+        control.value = "";
+        return;
+      }
       if (action === "spiritual-daily") {
         state.spiritual.dailyTextDate = control.checked ? localDateKey() : "";
         save();
