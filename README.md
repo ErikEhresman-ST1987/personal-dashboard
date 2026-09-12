@@ -37,6 +37,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - **Prepare List** mode selects items for a trip.
 - **Shop** mode shows only selected items.
 - Items are displayed alphabetically without changing their saved positions.
+- Each store’s Data section can permanently alphabetize its filled master-list entries while preserving trip selections and purchases.
 - Purchased items remain visible with a line through them unless **Hide purchased** is enabled.
 - **Finish Trip** clears the current trip after confirmation but preserves the reusable master list.
 
@@ -141,7 +142,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v10
+personal-dashboard-v11
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
@@ -173,10 +174,10 @@ Automated tests support these checks, but real use on the installed PWA remains 
 ### Implemented and being tested
 
 - Local JSON Backup and Restore in Data.
+- Per-store shopping-data alphabetization.
 
 ### Worth considering after current testing
 
-- Alphabetize the editable shopping master lists on demand.
 - Optional tab visibility controls before sharing the app or adding many more tabs.
 
 ### Structural work to defer until justified
