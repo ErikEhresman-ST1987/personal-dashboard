@@ -72,6 +72,9 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - Restore accepts only a recognized backup format and replaces current data after confirmation.
 - Collapsible source lists for Today, This Week, and This Month.
 - Collapsible store data with editable store names and reusable shopping items.
+- Collapsible Visible Tabs controls for every functional tab.
+- Data remains permanently visible so hidden tabs can always be restored.
+- Hiding a tab preserves all information saved inside it.
 
 ## File structure
 
@@ -103,6 +106,7 @@ The saved state currently contains:
 - `readingDone`: completed Bible-reading identifiers.
 - `shopping`: three stores, their names and master items, trip selections, purchases, active store, mode, and hide setting.
 - `spiritual`: Daily Text completion date, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
+- `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
 
 `normalizedState()` is the migration boundary. Every new saved field must receive a safe default there, and old or malformed state must be normalized before rendering. Existing unrelated fields must remain compatible.
 
@@ -114,7 +118,7 @@ Saved information still belongs to the individual browser installation and does 
 
 ## Rendering and interaction conventions
 
-- `render()` currently creates every panel and hides inactive panels with CSS.
+- `render()` constructs only the active panel and updates the persistent navigation buttons.
 - Event delegation on `main` handles controls added by rendering.
 - Text inputs save without a full render to keep mobile typing stable.
 - Checkbox rows should update locally when practical so the page does not jump.
@@ -122,7 +126,7 @@ Saved information still belongs to the individual browser installation and does 
 - Native date inputs are used for lightweight iOS and Android compatibility.
 - User-provided text must pass through `escapeHtml()` before entering generated markup.
 
-The current all-panel rendering remains responsive, but it should be reconsidered before adding another data-heavy tracker.
+Active-panel rendering keeps the large Bible Reading and Data interfaces out of the document when another tab is in use. Switching tabs reconstructs the selected panel from saved in-memory state.
 
 ## PWA and release procedure
 
@@ -142,7 +146,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v11
+personal-dashboard-v12
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
@@ -170,19 +174,20 @@ Automated tests support these checks, but real use on the installed PWA remains 
 ### Implemented and stable
 
 - Spiritual tab and its reset, progress, date, clearing, and remembered-collapse behavior.
-
-### Implemented and being tested
-
 - Local JSON Backup and Restore in Data.
 - Per-store shopping-data alphabetization.
 
+### Implemented and being tested
+
+- Active-tab-only rendering.
+- Per-device Visible Tabs controls with Data permanently available.
+
 ### Worth considering after current testing
 
-- Optional tab visibility controls before sharing the app or adding many more tabs.
+- Additional organizer tabs only when real use identifies a clear need.
 
 ### Structural work to defer until justified
 
-- Render only the active tab before adding another data-heavy feature.
 - Split CSS and JavaScript out of `index.html` when another substantial expansion makes the isolated refactor worthwhile.
 
 ### Explicitly not implemented
