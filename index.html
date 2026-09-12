@@ -663,7 +663,8 @@
     function storeItems(store) {
       return store.items
         .map((text, index) => ({ text: text.trim(), index }))
-        .filter(item => item.text);
+        .filter(item => item.text)
+        .sort((a, b) => a.text.localeCompare(b.text, undefined, { sensitivity: "base", numeric: true }));
     }
 
     function selectedStoreItems(store) {
