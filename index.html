@@ -712,6 +712,17 @@
 
     .store-data-content { padding: 0 12px 13px; border-top: 1px solid var(--line); }
 
+    .alphabetize-store {
+      width: 100%;
+      min-height: 44px;
+      margin: 0 0 12px;
+      border: 1px solid var(--accent);
+      border-radius: 11px;
+      background: #f3f8f5;
+      color: var(--accent);
+      font-weight: 750;
+    }
+
     .store-name-label {
       display: grid;
       gap: 6px;
@@ -1113,6 +1124,26 @@
         .sort((a, b) => a.text.localeCompare(b.text, undefined, { sensitivity: "base", numeric: true }));
     }
 
+    function alphabetizeStoreData(store) {
+      const filled = store.items
+        .map((text, index) => ({
+          text,
+          selected: Boolean(store.selected[index]),
+          purchased: Boolean(store.purchased[index])
+        }))
+        .filter(item => item.text.trim())
+        .sort((a, b) => a.text.trim().localeCompare(b.text.trim(), undefined, { sensitivity: "base", numeric: true }));
+
+      store.items = filled.map(item => item.text);
+      while (store.items.length < 100) store.items.push("");
+      store.selected = {};
+      store.purchased = {};
+      filled.forEach((item, index) => {
+        if (item.selected) store.selected[index] = true;
+        if (item.purchased && item.selected) store.purchased[index] = true;
+      });
+    }
+
     function selectedStoreItems(store) {
       return storeItems(store).filter(item => store.selected[item.index]);
     }
@@ -1355,6 +1386,7 @@
                 <label class="store-name-label">Store name
                   <input data-action="store-name" data-store="${storeIndex}" value="${escapeHtml(store.name)}" maxlength="60" placeholder="Store ${storeIndex + 1}">
                 </label>
+                <button class="alphabetize-store" data-action="shopping-alphabetize" data-store="${storeIndex}">Alphabetize A–Z</button>
                 <div class="choice-list">
                   ${store.items.map((value, itemIndex) => `<div class="choice-row">
                     <label for="store-${storeIndex}-item-${itemIndex}">${itemIndex + 1}</label>
@@ -1392,6 +1424,21 @@
       const { action, store, mode } = button.dataset;
       if (action === "backup-export") {
         await exportBackup();
+        return;
+      }
+      if (action === "shopping-alphabetize") {
+        const storeIndex = Number(store);
+        const currentStore = state.shopping.stores[storeIndex];
+        alphabetizeStoreData(currentStore);
+        save();
+        const inputs = button.closest(".store-data-group").querySelectorAll('input[data-action="shopping-item"]');
+        inputs.forEach(input => {
+          input.value = currentStore.items[Number(input.dataset.index)];
+        });
+        button.textContent = "Alphabetized A–Z";
+        setTimeout(() => {
+          if (button.isConnected) button.textContent = "Alphabetize A–Z";
+        }, 900);
         return;
       }
       if (action === "shopping-store") {
