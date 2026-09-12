@@ -65,6 +65,10 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 
 ### Data
 
+- Collapsible Backup & Restore section.
+- A dated JSON backup contains the complete dashboard state.
+- Mobile devices use the share sheet when supported; desktop browsers use a normal download.
+- Restore accepts only a recognized backup format and replaces current data after confirmation.
 - Collapsible source lists for Today, This Week, and This Month.
 - Collapsible store data with editable store names and reusable shopping items.
 
@@ -101,9 +105,11 @@ The saved state currently contains:
 
 `normalizedState()` is the migration boundary. Every new saved field must receive a safe default there, and old or malformed state must be normalized before rendering. Existing unrelated fields must remain compatible.
 
-### Data limitation
+### Backup format and data limitation
 
-Saved information belongs to the individual browser installation. It does not currently sync between devices, and Backup and Restore has not yet been implemented. Clearing browser or PWA storage can remove the only saved copy.
+Backups use a versioned JSON envelope containing the app identifier, backup-format version, export time, and normalized state. Restore rejects unrelated or unreadable files and limits file size before parsing.
+
+Saved information still belongs to the individual browser installation and does not sync automatically. Use **Save Backup** periodically and keep the JSON file somewhere safe. A backup can also transfer the dashboard to another browser or device.
 
 ## Rendering and interaction conventions
 
@@ -135,7 +141,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v9
+personal-dashboard-v10
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
@@ -160,13 +166,16 @@ Automated tests support these checks, but real use on the installed PWA remains 
 
 ## Current status and possible next steps
 
-### Implemented and being tested
+### Implemented and stable
 
 - Spiritual tab and its reset, progress, date, clearing, and remembered-collapse behavior.
 
-### Worth considering after current testing
+### Implemented and being tested
 
 - Local JSON Backup and Restore in Data.
+
+### Worth considering after current testing
+
 - Alphabetize the editable shopping master lists on demand.
 - Optional tab visibility controls before sharing the app or adding many more tabs.
 
