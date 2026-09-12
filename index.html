@@ -388,13 +388,24 @@
     .data-groups { display: grid; gap: 16px; }
 
     .data-group {
-      padding: 13px;
+      overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: var(--paper);
     }
 
-    .data-group h3 { margin: 1px 2px 10px; font-size: 1rem; }
+    .data-group summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 54px;
+      padding: 11px 13px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .data-group-content { padding: 12px 13px 13px; border-top: 1px solid var(--line); }
 
     .choice-list { display: grid; gap: 8px; }
 
@@ -761,15 +772,20 @@
         <div class="section-head"><h2>Data</h2><span>Lists and stores</span></div>
         <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
         <div class="data-groups">
-          ${sections.map(section => `<div class="data-group ${section.id}-data">
-            <h3>${section.title}</h3>
-            <div class="choice-list">
-              ${state.choices[section.id].map((value, index) => `<div class="choice-row">
-                <label for="choice-${section.id}-${index}">${index + 1}</label>
-                <input id="choice-${section.id}-${index}" data-action="choice" data-section="${section.id}" data-index="${index}" value="${escapeHtml(value)}" placeholder="Available choice">
-              </div>`).join("")}
-            </div>
-          </div>`).join("")}
+          ${sections.map(section => {
+            const choiceCount = state.choices[section.id].filter(value => value.trim()).length;
+            return `<details class="data-group ${section.id}-data">
+              <summary><span>${section.title}</span><span class="group-progress">${choiceCount} choices</span></summary>
+              <div class="data-group-content">
+                <div class="choice-list">
+                  ${state.choices[section.id].map((value, index) => `<div class="choice-row">
+                    <label for="choice-${section.id}-${index}">${index + 1}</label>
+                    <input id="choice-${section.id}-${index}" data-action="choice" data-section="${section.id}" data-index="${index}" value="${escapeHtml(value)}" placeholder="Available choice">
+                  </div>`).join("")}
+                </div>
+              </div>
+            </details>`;
+          }).join("")}
           <h3 class="shopping-data-heading">Shopping Stores</h3>
           <p class="helper">Rename each store and maintain up to 100 reusable items. Blank positions stay out of the Shopping tab.</p>
           ${state.shopping.stores.map((store, storeIndex) => {
