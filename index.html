@@ -18,6 +18,7 @@
       --today: #d1e5f9;
       --week: #d6efd6;
       --month: #f9eacc;
+      --shopping: #f5ddcf;
       --bible: #eadbf4;
       --data: #dfe5df;
       --accent: #315f4b;
@@ -142,6 +143,7 @@
     .today .section-head { background: var(--today); }
     .week .section-head { background: var(--week); }
     .month .section-head { background: var(--month); }
+    .shopping .section-head { background: var(--shopping); }
     .bible .section-head { background: var(--bible); }
     .data .section-head { background: var(--data); }
 
@@ -285,6 +287,104 @@
     .reading-marker-spacer { width: 11px; height: 11px; }
     .reading-text { min-width: 0; line-height: 1.3; }
 
+    .shopping-toolbar { display: grid; gap: 10px; margin-bottom: 14px; }
+
+    .store-tabs, .mode-switch {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .store-tabs::-webkit-scrollbar, .mode-switch::-webkit-scrollbar { display: none; }
+
+    .store-button, .mode-button {
+      min-height: 42px;
+      padding: 8px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .store-button[aria-pressed="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      border-radius: 14px;
+      background: #e9e6dd;
+    }
+
+    .mode-button { border: 0; background: transparent; }
+    .mode-button[aria-pressed="true"] { background: var(--paper); box-shadow: 0 2px 8px rgba(45, 52, 45, .1); }
+
+    .shopping-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 12px;
+    }
+
+    .toggle-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      color: var(--muted);
+      font-size: .88rem;
+      font-weight: 650;
+    }
+
+    .toggle-control input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+    .shopping-list { display: grid; gap: 8px; }
+
+    .shopping-item {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 58px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+
+    .shopping-item.done { opacity: .48; background: #f2f1ec; }
+    .shopping-item.done .shopping-item-text { text-decoration: line-through; }
+    .shopping-item-text { min-width: 0; line-height: 1.3; }
+
+    .empty-state {
+      margin: 0;
+      padding: 22px 18px;
+      border: 1px dashed #cbc9c0;
+      border-radius: 14px;
+      color: var(--muted);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .finish-trip {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 14px;
+      border: 1px solid #a94a45;
+      border-radius: 13px;
+      background: #fff7f5;
+      color: #873a36;
+      font-weight: 750;
+    }
+
     .data-groups { display: grid; gap: 16px; }
 
     .data-group {
@@ -320,6 +420,53 @@
     .week-data { border-left: 6px solid var(--week); }
     .month-data { border-left: 6px solid var(--month); }
 
+    .shopping-data-heading { margin: 22px 2px 10px; font-size: 1.05rem; }
+
+    .store-data-group {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--shopping);
+      border-radius: 16px;
+      background: var(--paper);
+    }
+
+    .store-data-group summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 54px;
+      padding: 11px 13px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .store-data-content { padding: 0 12px 13px; border-top: 1px solid var(--line); }
+
+    .store-name-label {
+      display: grid;
+      gap: 6px;
+      margin: 12px 0;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 750;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .store-name-label input {
+      min-height: 44px;
+      padding: 9px 11px;
+      border: 1px solid #cfcdc4;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
     :focus-visible { outline: 3px solid rgba(49, 95, 75, .38); outline-offset: 2px; }
 
     @media (min-width: 621px) {
@@ -347,6 +494,7 @@
       <button class="tab" data-tab="today" aria-selected="true">Today</button>
       <button class="tab" data-tab="week" aria-selected="false">This Week</button>
       <button class="tab" data-tab="month" aria-selected="false">This Month</button>
+      <button class="tab" data-tab="shopping" aria-selected="false">Shopping</button>
       <button class="tab" data-tab="bible" aria-selected="false">Bible Reading</button>
       <button class="tab" data-tab="data" aria-selected="false">Data</button>
     </nav>
@@ -364,6 +512,12 @@
     ];
 
     const blankChoices = () => Array(15).fill("");
+    const blankStore = index => ({
+      name: `Store ${index + 1}`,
+      items: Array(100).fill(""),
+      selected: {},
+      purchased: {}
+    });
     const defaults = {
       choices: {
         today: blankChoices(),
@@ -375,7 +529,13 @@
         week: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
         month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
       },
-      readingDone: {}
+      readingDone: {},
+      shopping: {
+        stores: Array.from({ length: 3 }, (_, index) => blankStore(index)),
+        activeStore: 0,
+        mode: "prepare",
+        hidePurchased: false
+      }
     };
 
     const readingIds = new Set(BIBLE_READING_GROUPS.flatMap(group => group.readings.map(reading => reading.id)));
@@ -401,6 +561,29 @@
         for (const [id, done] of Object.entries(candidate.readingDone)) {
           if (done && readingIds.has(id)) fresh.readingDone[id] = true;
         }
+      }
+      if (candidate.shopping && typeof candidate.shopping === "object") {
+        const candidateStores = Array.isArray(candidate.shopping.stores) ? candidate.shopping.stores : [];
+        fresh.shopping.stores = fresh.shopping.stores.map((fallback, storeIndex) => {
+          const candidateStore = candidateStores[storeIndex];
+          if (!candidateStore || typeof candidateStore !== "object") return fallback;
+          const store = blankStore(storeIndex);
+          store.name = String(candidateStore.name ?? fallback.name).slice(0, 60);
+          if (Array.isArray(candidateStore.items)) {
+            store.items = candidateStore.items.slice(0, 100).map(value => String(value ?? "").slice(0, 160));
+            while (store.items.length < 100) store.items.push("");
+          }
+          for (let index = 0; index < 100; index += 1) {
+            if (!store.items[index]) continue;
+            if (candidateStore.selected?.[index]) store.selected[index] = true;
+            if (candidateStore.purchased?.[index] && store.selected[index]) store.purchased[index] = true;
+          }
+          return store;
+        });
+        const activeStore = Number(candidate.shopping.activeStore);
+        if (Number.isInteger(activeStore) && activeStore >= 0 && activeStore < 3) fresh.shopping.activeStore = activeStore;
+        if (candidate.shopping.mode === "shop") fresh.shopping.mode = "shop";
+        fresh.shopping.hidePurchased = Boolean(candidate.shopping.hidePurchased);
       }
       return fresh;
     }
@@ -462,6 +645,69 @@
       </section>`;
     }
 
+    function storeDisplayName(store, index) {
+      return store.name.trim() || `Store ${index + 1}`;
+    }
+
+    function storeItems(store) {
+      return store.items
+        .map((text, index) => ({ text: text.trim(), index }))
+        .filter(item => item.text);
+    }
+
+    function selectedStoreItems(store) {
+      return storeItems(store).filter(item => store.selected[item.index]);
+    }
+
+    function shoppingMarkup() {
+      const { stores, activeStore, mode, hidePurchased } = state.shopping;
+      const store = stores[activeStore];
+      const name = storeDisplayName(store, activeStore);
+      const available = storeItems(store);
+      const selected = selectedStoreItems(store);
+      const purchasedCount = selected.reduce((count, item) => count + (store.purchased[item.index] ? 1 : 0), 0);
+      const visibleTripItems = hidePurchased ? selected.filter(item => !store.purchased[item.index]) : selected;
+      const progress = mode === "prepare" ? `${selected.length} selected` : `${purchasedCount} of ${selected.length}`;
+
+      const prepareList = available.length
+        ? `<div class="shopping-list">${available.map(item => `<label class="shopping-item">
+            <input class="check" data-action="shopping-select" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.selected[item.index] ? "checked" : ""} aria-label="Add ${escapeHtml(item.text)} to the ${escapeHtml(name)} trip">
+            <span class="shopping-item-text">${escapeHtml(item.text)}</span>
+          </label>`).join("")}</div>`
+        : `<p class="empty-state">No reusable items have been entered for ${escapeHtml(name)} yet. Add them in the Data tab.</p>`;
+
+      const shopList = visibleTripItems.length
+        ? `<div class="shopping-list">${visibleTripItems.map(item => `<label class="shopping-item${store.purchased[item.index] ? " done" : ""}">
+            <input class="check" data-action="shopping-purchased" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.purchased[item.index] ? "checked" : ""} aria-label="Mark ${escapeHtml(item.text)} purchased">
+            <span class="shopping-item-text">${escapeHtml(item.text)}</span>
+          </label>`).join("")}</div>`
+        : `<p class="empty-state">${selected.length ? "All selected items are purchased." : `No items are selected for ${escapeHtml(name)}. Use Prepare List to choose what you need.`}</p>`;
+
+      return `<section class="panel shopping${activeTab === "shopping" ? " active" : ""}" data-panel="shopping">
+        <div class="section-head"><h2>Shopping</h2><span id="shoppingProgress">${progress}</span></div>
+        <div class="shopping-toolbar">
+          <div class="store-tabs" aria-label="Stores">
+            ${stores.map((item, index) => {
+              const count = selectedStoreItems(item).length;
+              return `<button class="store-button" data-action="shopping-store" data-store="${index}" aria-pressed="${index === activeStore}">${escapeHtml(storeDisplayName(item, index))}${count ? ` (${count})` : ""}</button>`;
+            }).join("")}
+          </div>
+          <div class="mode-switch" aria-label="Shopping mode">
+            <button class="mode-button" data-action="shopping-mode" data-mode="prepare" aria-pressed="${mode === "prepare"}">Prepare List</button>
+            <button class="mode-button" data-action="shopping-mode" data-mode="shop" aria-pressed="${mode === "shop"}">Shop</button>
+          </div>
+        </div>
+        ${mode === "prepare"
+          ? `<p class="helper">Choose items from your reusable ${escapeHtml(name)} list. Only selected items appear in Shop mode.</p>${prepareList}`
+          : `<p class="helper">Check off items as you purchase them. Your reusable master list will remain unchanged.</p>
+            <div class="shopping-options">
+              <label class="toggle-control"><input data-action="shopping-hide" type="checkbox" ${hidePurchased ? "checked" : ""}>Hide purchased</label>
+            </div>
+            ${shopList}
+            ${selected.length ? `<button class="finish-trip" data-action="shopping-finish" data-store="${activeStore}">Finish ${escapeHtml(name)} Trip</button>` : ""}`}
+      </section>`;
+    }
+
     function completedReadingCount(readings) {
       return readings.reduce((count, reading) => count + (state.readingDone[reading.id] ? 1 : 0), 0);
     }
@@ -512,7 +758,7 @@
 
     function dataMarkup() {
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
-        <div class="section-head"><h2>Data</h2><span>Dropdown choices</span></div>
+        <div class="section-head"><h2>Data</h2><span>Lists and stores</span></div>
         <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
         <div class="data-groups">
           ${sections.map(section => `<div class="data-group ${section.id}-data">
@@ -524,12 +770,31 @@
               </div>`).join("")}
             </div>
           </div>`).join("")}
+          <h3 class="shopping-data-heading">Shopping Stores</h3>
+          <p class="helper">Rename each store and maintain up to 100 reusable items. Blank positions stay out of the Shopping tab.</p>
+          ${state.shopping.stores.map((store, storeIndex) => {
+            const itemCount = storeItems(store).length;
+            return `<details class="store-data-group"${storeIndex === 0 ? " open" : ""}>
+              <summary><span>${escapeHtml(storeDisplayName(store, storeIndex))}</span><span class="group-progress">${itemCount} items</span></summary>
+              <div class="store-data-content">
+                <label class="store-name-label">Store name
+                  <input data-action="store-name" data-store="${storeIndex}" value="${escapeHtml(store.name)}" maxlength="60" placeholder="Store ${storeIndex + 1}">
+                </label>
+                <div class="choice-list">
+                  ${store.items.map((value, itemIndex) => `<div class="choice-row">
+                    <label for="store-${storeIndex}-item-${itemIndex}">${itemIndex + 1}</label>
+                    <input id="store-${storeIndex}-item-${itemIndex}" data-action="shopping-item" data-store="${storeIndex}" data-index="${itemIndex}" value="${escapeHtml(value)}" maxlength="160" placeholder="Reusable shopping item">
+                  </div>`).join("")}
+                </div>
+              </div>
+            </details>`;
+          }).join("")}
         </div>
       </section>`;
     }
 
     function render() {
-      main.innerHTML = sections.map(sectionMarkup).join("") + bibleMarkup() + dataMarkup();
+      main.innerHTML = sections.map(sectionMarkup).join("") + shoppingMarkup() + bibleMarkup() + dataMarkup();
       document.querySelectorAll(".tab").forEach(button => {
         button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
       });
@@ -546,10 +811,68 @@
       });
     });
 
+    main.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const { action, store, mode } = button.dataset;
+      if (action === "shopping-store") {
+        state.shopping.activeStore = Number(store);
+        save();
+        render();
+      }
+      if (action === "shopping-mode") {
+        state.shopping.mode = mode;
+        save();
+        render();
+      }
+      if (action === "shopping-finish") {
+        const storeIndex = Number(store);
+        const currentStore = state.shopping.stores[storeIndex];
+        const name = storeDisplayName(currentStore, storeIndex);
+        if (!window.confirm(`Finish the ${name} trip and clear every selected item?`)) return;
+        currentStore.selected = {};
+        currentStore.purchased = {};
+        state.shopping.hidePurchased = false;
+        save();
+        render();
+      }
+    });
+
     main.addEventListener("change", event => {
       const control = event.target;
-      const { action, section, index, id } = control.dataset;
+      const { action, section, index, id, store } = control.dataset;
       if (!action) return;
+      if (action === "shopping-select") {
+        const currentStore = state.shopping.stores[Number(store)];
+        if (control.checked) currentStore.selected[index] = true;
+        else {
+          delete currentStore.selected[index];
+          delete currentStore.purchased[index];
+        }
+        save();
+        render();
+        return;
+      }
+      if (action === "shopping-purchased") {
+        const currentStore = state.shopping.stores[Number(store)];
+        if (control.checked) currentStore.purchased[index] = true;
+        else delete currentStore.purchased[index];
+        save();
+        if (state.shopping.hidePurchased) render();
+        else {
+          control.closest(".shopping-item").classList.toggle("done", control.checked);
+          const selected = selectedStoreItems(currentStore);
+          const purchased = selected.reduce((count, item) => count + (currentStore.purchased[item.index] ? 1 : 0), 0);
+          document.getElementById("shoppingProgress").textContent = `${purchased} of ${selected.length}`;
+        }
+        return;
+      }
+      if (action === "shopping-hide") {
+        state.shopping.hidePurchased = control.checked;
+        save();
+        render();
+        return;
+      }
       if (action === "reading-done") {
         if (control.checked) state.readingDone[id] = true;
         else delete state.readingDone[id];
@@ -577,13 +900,26 @@
 
     main.addEventListener("input", event => {
       const control = event.target;
-      const { action, section, index } = control.dataset;
+      const { action, section, index, store } = control.dataset;
       if (action === "task-value" && control.tagName === "INPUT") {
         state.tasks[section][index].value = control.value;
         save();
       }
       if (action === "choice") {
         state.choices[section][index] = control.value;
+        save();
+      }
+      if (action === "store-name") {
+        state.shopping.stores[Number(store)].name = control.value;
+        save();
+      }
+      if (action === "shopping-item") {
+        const currentStore = state.shopping.stores[Number(store)];
+        currentStore.items[index] = control.value;
+        if (!control.value.trim()) {
+          delete currentStore.selected[index];
+          delete currentStore.purchased[index];
+        }
         save();
       }
     });
