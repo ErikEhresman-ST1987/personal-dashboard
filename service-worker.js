@@ -1,4 +1,4 @@
-const CACHE_NAME = "personal-dashboard-v11";
+const CACHE_NAME = "personal-dashboard-v12";
 const APP_SHELL = ["./", "./index.html", "./bible-readings.js", "./manifest.webmanifest"];
 
 self.addEventListener("install", event => {
