@@ -661,6 +661,29 @@
 
     .backup-status.error { color: #9a3732; }
 
+    .visibility-data { border-left: 6px solid var(--accent); }
+    .visibility-list { display: grid; gap: 7px; }
+
+    .visibility-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      min-height: 48px;
+      padding: 7px 9px;
+      border: 1px solid #ebe8df;
+      border-radius: 12px;
+      background: #fff;
+      font-weight: 650;
+    }
+
+    .visibility-row input {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
     .choice-list { display: grid; gap: 8px; }
 
     .choice-row {
@@ -795,6 +818,14 @@
       { id: "week", title: "This Week", className: "week", note: "Monday–Friday", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
       { id: "month", title: "This Month", className: "month", note: "5 items" }
     ];
+    const configurableTabs = [
+      { id: "today", label: "Today" },
+      { id: "week", label: "This Week" },
+      { id: "month", label: "This Month" },
+      { id: "shopping", label: "Shopping" },
+      { id: "bible", label: "Bible Reading" },
+      { id: "spiritual", label: "Spiritual" }
+    ];
 
     const blankChoices = () => Array(15).fill("");
     const blankStore = index => ({
@@ -832,7 +863,8 @@
         upcomingParts: blankDatedEntries(),
         customActivities: blankDatedEntries(),
         openGroups: { midweek: true, sunday: false, upcoming: false, custom: false }
-      }
+      },
+      visibleTabs: Object.fromEntries(configurableTabs.map(tab => [tab.id, true]))
     };
 
     const readingIds = new Set(BIBLE_READING_GROUPS.flatMap(group => group.readings.map(reading => reading.id)));
@@ -924,6 +956,13 @@
         if (spiritual.openGroups && typeof spiritual.openGroups === "object") {
           for (const key of Object.keys(fresh.spiritual.openGroups)) {
             fresh.spiritual.openGroups[key] = Boolean(spiritual.openGroups[key]);
+          }
+        }
+      }
+      if (candidate.visibleTabs && typeof candidate.visibleTabs === "object") {
+        for (const tab of configurableTabs) {
+          if (typeof candidate.visibleTabs[tab.id] === "boolean") {
+            fresh.visibleTabs[tab.id] = candidate.visibleTabs[tab.id];
           }
         }
       }
@@ -1345,6 +1384,7 @@
     }
 
     function dataMarkup() {
+      const visibleTabCount = configurableTabs.filter(tab => state.visibleTabs[tab.id]).length;
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
         <div class="section-head"><h2>Data</h2><span>Lists, stores, and backup</span></div>
         <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
@@ -1360,6 +1400,18 @@
                 </label>
               </div>
               <p class="backup-status" id="backupStatus" aria-live="polite"></p>
+            </div>
+          </details>
+          <details class="data-group visibility-data">
+            <summary><span>Visible Tabs</span><span class="group-progress" id="visibilityProgress">${visibleTabCount} of ${configurableTabs.length}</span></summary>
+            <div class="data-group-content">
+              <p class="helper">Choose which functional tabs appear in the navigation bar. Hidden tabs keep all their saved data. Data always remains available.</p>
+              <div class="visibility-list">
+                ${configurableTabs.map(tab => `<label class="visibility-row">
+                  <input data-action="tab-visibility" data-tab="${tab.id}" type="checkbox" ${state.visibleTabs[tab.id] ? "checked" : ""}>
+                  <span>${tab.label}</span>
+                </label>`).join("")}
+              </div>
             </div>
           </details>
           ${sections.map(section => {
@@ -1400,16 +1452,41 @@
       </section>`;
     }
 
-    function render() {
-      main.innerHTML = sections.map(sectionMarkup).join("") + shoppingMarkup() + bibleMarkup() + spiritualMarkup() + dataMarkup();
+    function tabIsVisible(tabId) {
+      return tabId === "data" || Boolean(state.visibleTabs[tabId]);
+    }
+
+    function ensureVisibleActiveTab() {
+      if (tabIsVisible(activeTab)) return;
+      activeTab = configurableTabs.find(tab => state.visibleTabs[tab.id])?.id || "data";
+    }
+
+    function activePanelMarkup() {
+      const section = sections.find(item => item.id === activeTab);
+      if (section) return sectionMarkup(section);
+      if (activeTab === "shopping") return shoppingMarkup();
+      if (activeTab === "bible") return bibleMarkup();
+      if (activeTab === "spiritual") return spiritualMarkup();
+      return dataMarkup();
+    }
+
+    function updateTabNavigation() {
       document.querySelectorAll(".tab").forEach(button => {
+        button.hidden = !tabIsVisible(button.dataset.tab);
         button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
       });
+    }
+
+    function render() {
+      ensureVisibleActiveTab();
+      main.innerHTML = activePanelMarkup();
+      updateTabNavigation();
     }
 
     document.querySelector("nav").addEventListener("click", event => {
       const button = event.target.closest(".tab");
       if (!button) return;
+      if (!tabIsVisible(button.dataset.tab)) return;
       activeTab = button.dataset.tab;
       render();
       requestAnimationFrame(() => {
@@ -1497,12 +1574,23 @@
 
     main.addEventListener("change", async event => {
       const control = event.target;
-      const { action, section, index, id, store, group, list } = control.dataset;
+      const { action, section, index, id, store, group, list, tab } = control.dataset;
       if (!action) return;
       if (action === "backup-restore") {
         const file = control.files?.[0];
         await restoreBackup(file);
         control.value = "";
+        return;
+      }
+      if (action === "tab-visibility") {
+        state.visibleTabs[tab] = control.checked;
+        save();
+        updateTabNavigation();
+        const progress = document.getElementById("visibilityProgress");
+        if (progress) {
+          const count = configurableTabs.filter(item => state.visibleTabs[item.id]).length;
+          progress.textContent = `${count} of ${configurableTabs.length}`;
+        }
         return;
       }
       if (action === "spiritual-daily") {
