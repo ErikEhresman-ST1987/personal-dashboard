@@ -18,7 +18,7 @@
       --today: #d1e5f9;
       --week: #d6efd6;
       --month: #f9eacc;
-      --parking: #eadbf4;
+      --bible: #eadbf4;
       --data: #dfe5df;
       --accent: #315f4b;
       --shadow: 0 10px 30px rgba(45, 52, 45, .08);
@@ -142,7 +142,7 @@
     .today .section-head { background: var(--today); }
     .week .section-head { background: var(--week); }
     .month .section-head { background: var(--month); }
-    .parking .section-head { background: var(--parking); }
+    .bible .section-head { background: var(--bible); }
     .data .section-head { background: var(--data); }
 
     .task-list { display: grid; gap: 10px; }
@@ -202,6 +202,89 @@
       line-height: 1.4;
     }
 
+    .reading-legend {
+      display: grid;
+      gap: 7px;
+      margin: -3px 3px 16px;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.35;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+
+    .reading-marker {
+      display: inline-block;
+      flex: 0 0 auto;
+      width: 11px;
+      height: 11px;
+    }
+
+    .history-marker {
+      background: #c84949;
+      transform: rotate(45deg);
+      border-radius: 1px;
+    }
+
+    .congregation-marker {
+      background: #3975bd;
+      border-radius: 50%;
+    }
+
+    .reading-groups { display: grid; gap: 10px; }
+
+    .reading-group {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      scroll-margin-top: 74px;
+    }
+
+    .reading-group summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 58px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      list-style-position: inside;
+    }
+
+    .reading-group[open] summary {
+      background: color-mix(in srgb, var(--bible) 58%, white);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .group-progress {
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .reading-list { display: grid; }
+
+    .reading-task {
+      display: grid;
+      grid-template-columns: 38px 15px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      min-height: 56px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #ebe8df;
+      scroll-margin-top: 74px;
+    }
+
+    .reading-task:last-child { border-bottom: 0; }
+    .reading-task.done { opacity: .48; background: #f2f1ec; }
+    .reading-task.done .reading-text { text-decoration: line-through; }
+    .reading-task .check { width: 25px; height: 25px; }
+    .reading-marker-spacer { width: 11px; height: 11px; }
+    .reading-text { min-width: 0; line-height: 1.3; }
+
     .data-groups { display: grid; gap: 16px; }
 
     .data-group {
@@ -236,7 +319,6 @@
     .today-data { border-left: 6px solid var(--today); }
     .week-data { border-left: 6px solid var(--week); }
     .month-data { border-left: 6px solid var(--month); }
-    .parking-data { border-left: 6px solid var(--parking); }
 
     :focus-visible { outline: 3px solid rgba(49, 95, 75, .38); outline-offset: 2px; }
 
@@ -265,20 +347,20 @@
       <button class="tab" data-tab="today" aria-selected="true">Today</button>
       <button class="tab" data-tab="week" aria-selected="false">This Week</button>
       <button class="tab" data-tab="month" aria-selected="false">This Month</button>
-      <button class="tab" data-tab="parking" aria-selected="false">Parking Lot</button>
+      <button class="tab" data-tab="bible" aria-selected="false">Bible Reading</button>
       <button class="tab" data-tab="data" aria-selected="false">Data</button>
     </nav>
 
     <main id="main"></main>
   </div>
 
+  <script src="bible-readings.js"></script>
   <script>
     const STORAGE_KEY = "personal-dashboard-v1";
     const sections = [
       { id: "today", title: "Today", className: "today", note: "5 items" },
       { id: "week", title: "This Week", className: "week", note: "Monday–Friday", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
-      { id: "month", title: "This Month", className: "month", note: "5 items" },
-      { id: "parking", title: "Parking Lot", className: "parking", note: "5 items" }
+      { id: "month", title: "This Month", className: "month", note: "5 items" }
     ];
 
     const blankChoices = () => Array(15).fill("");
@@ -286,16 +368,18 @@
       choices: {
         today: blankChoices(),
         week: blankChoices(),
-        month: blankChoices(),
-        parking: blankChoices()
+        month: blankChoices()
       },
       tasks: {
         today: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
         week: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
-        month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
-        parking: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
-      }
+        month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
+      },
+      readingDone: {}
     };
+
+    const readingIds = new Set(BIBLE_READING_GROUPS.flatMap(group => group.readings.map(reading => reading.id)));
+    const totalReadings = readingIds.size;
 
     function normalizedState(candidate) {
       const fresh = structuredClone(defaults);
@@ -313,6 +397,11 @@
           });
         }
       }
+      if (candidate.readingDone && typeof candidate.readingDone === "object") {
+        for (const [id, done] of Object.entries(candidate.readingDone)) {
+          if (done && readingIds.has(id)) fresh.readingDone[id] = true;
+        }
+      }
       return fresh;
     }
 
@@ -322,6 +411,8 @@
     }
 
     let state = loadState();
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch { /* Continue with in-memory state if storage is temporarily unavailable. */ }
     let activeTab = "today";
     const main = document.getElementById("main");
     const saveStatus = document.getElementById("saveStatus");
@@ -371,6 +462,54 @@
       </section>`;
     }
 
+    function completedReadingCount(readings) {
+      return readings.reduce((count, reading) => count + (state.readingDone[reading.id] ? 1 : 0), 0);
+    }
+
+    function nextUnreadGroupIndex() {
+      return BIBLE_READING_GROUPS.findIndex(group => group.readings.some(reading => !state.readingDone[reading.id]));
+    }
+
+    function markerMarkup(marker) {
+      if (marker === "history") return `<span class="reading-marker history-marker" aria-label="Historical overview" title="Historical overview"></span>`;
+      if (marker === "congregation") return `<span class="reading-marker congregation-marker" aria-label="Christian congregation overview" title="Christian congregation overview"></span>`;
+      return `<span class="reading-marker-spacer" aria-hidden="true"></span>`;
+    }
+
+    function bibleMarkup() {
+      const completed = completedReadingCount(BIBLE_READING_GROUPS.flatMap(group => group.readings));
+      const openGroup = nextUnreadGroupIndex();
+      return `<section class="panel bible${activeTab === "bible" ? " active" : ""}" data-panel="bible">
+        <div class="section-head"><h2>Bible Reading</h2><span id="bibleProgress">${completed} of ${totalReadings}</span></div>
+        <p class="helper">Check off each reading as you complete it. The group containing your next unread section opens automatically.</p>
+        <div class="reading-legend">
+          <span class="legend-item"><span class="reading-marker history-marker" aria-hidden="true"></span>Historical overview of God’s dealings with the Israelites</span>
+          <span class="legend-item"><span class="reading-marker congregation-marker" aria-hidden="true"></span>Chronological overview of the Christian congregation</span>
+        </div>
+        <div class="reading-groups">
+          ${BIBLE_READING_GROUPS.map((group, groupIndex) => {
+            const groupCompleted = completedReadingCount(group.readings);
+            return `<details class="reading-group" data-group="${groupIndex}"${groupIndex === openGroup ? " open" : ""}>
+              <summary><span>${escapeHtml(group.title)}</span><span class="group-progress">${groupCompleted} of ${group.readings.length}</span></summary>
+              <div class="reading-list">
+                ${group.readings.map(reading => `<label class="reading-task${state.readingDone[reading.id] ? " done" : ""}">
+                  <input class="check" data-action="reading-done" data-id="${reading.id}" type="checkbox" ${state.readingDone[reading.id] ? "checked" : ""} aria-label="Mark ${escapeHtml(reading.text)} complete">
+                  ${markerMarkup(reading.marker)}
+                  <span class="reading-text">${escapeHtml(reading.text)}</span>
+                </label>`).join("")}
+              </div>
+            </details>`;
+          }).join("")}
+        </div>
+      </section>`;
+    }
+
+    function scrollToNextReading() {
+      const nextReading = document.querySelector('.reading-task input[type="checkbox"]:not(:checked)')?.closest(".reading-task");
+      if (nextReading) nextReading.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function dataMarkup() {
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
         <div class="section-head"><h2>Data</h2><span>Dropdown choices</span></div>
@@ -390,7 +529,7 @@
     }
 
     function render() {
-      main.innerHTML = sections.map(sectionMarkup).join("") + dataMarkup();
+      main.innerHTML = sections.map(sectionMarkup).join("") + bibleMarkup() + dataMarkup();
       document.querySelectorAll(".tab").forEach(button => {
         button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
       });
@@ -401,13 +540,34 @@
       if (!button) return;
       activeTab = button.dataset.tab;
       render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      requestAnimationFrame(() => {
+        if (activeTab === "bible") scrollToNextReading();
+        else window.scrollTo({ top: 0, behavior: "smooth" });
+      });
     });
 
     main.addEventListener("change", event => {
       const control = event.target;
-      const { action, section, index } = control.dataset;
+      const { action, section, index, id } = control.dataset;
       if (!action) return;
+      if (action === "reading-done") {
+        if (control.checked) state.readingDone[id] = true;
+        else delete state.readingDone[id];
+        save();
+
+        const groupElement = control.closest(".reading-group");
+        const group = BIBLE_READING_GROUPS[Number(groupElement.dataset.group)];
+        const groupCompleted = completedReadingCount(group.readings);
+        if (control.checked && groupCompleted === group.readings.length) {
+          render();
+          requestAnimationFrame(scrollToNextReading);
+        } else {
+          control.closest(".reading-task").classList.toggle("done", control.checked);
+          groupElement.querySelector(".group-progress").textContent = `${groupCompleted} of ${group.readings.length}`;
+          document.getElementById("bibleProgress").textContent = `${completedReadingCount(BIBLE_READING_GROUPS.flatMap(item => item.readings))} of ${totalReadings}`;
+        }
+        return;
+      }
       if (action === "task-done") state.tasks[section][index].done = control.checked;
       if (action === "task-value") state.tasks[section][index].value = control.value;
       if (action === "choice") state.choices[section][index] = control.value.trim();
