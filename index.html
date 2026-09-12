@@ -20,6 +20,7 @@
       --month: #f9eacc;
       --shopping: #f5ddcf;
       --bible: #eadbf4;
+      --spiritual: #dcebe5;
       --data: #dfe5df;
       --accent: #315f4b;
       --shadow: 0 10px 30px rgba(45, 52, 45, .08);
@@ -147,6 +148,7 @@
     .month .section-head { background: var(--month); }
     .shopping .section-head { background: var(--shopping); }
     .bible .section-head { background: var(--bible); }
+    .spiritual .section-head { background: var(--spiritual); }
     .data .section-head { background: var(--data); }
 
     .task-list { display: grid; gap: 10px; }
@@ -223,6 +225,134 @@
     }
 
     .coming-date { color: var(--muted); }
+
+    .daily-text {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 62px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      font-weight: 700;
+      transition: opacity .18s ease, background .18s ease;
+    }
+
+    .daily-text.done { opacity: .48; background: #f2f1ec; }
+    .daily-text.done span { text-decoration: line-through; }
+
+    .spiritual-groups { display: grid; gap: 10px; }
+
+    .spiritual-group {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+    }
+
+    .spiritual-group summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 58px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      list-style-position: inside;
+    }
+
+    .spiritual-group[open] summary {
+      background: color-mix(in srgb, var(--spiritual) 62%, white);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .spiritual-content { padding: 10px 12px 12px; }
+    .spiritual-list { display: grid; gap: 8px; }
+
+    .spiritual-check-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      min-height: 56px;
+      padding: 8px 10px;
+      border: 1px solid #ebe8df;
+      border-radius: 13px;
+      background: #fff;
+      transition: opacity .18s ease, background .18s ease;
+    }
+
+    .spiritual-check-row.done { opacity: .48; background: #f2f1ec; }
+    .spiritual-check-row.done span { text-decoration: line-through; }
+
+    .sunday-count {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 78px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: .86rem;
+      font-weight: 650;
+    }
+
+    .sunday-count select {
+      width: 100%;
+      height: 42px;
+      padding: 7px 9px;
+      border: 1px solid #cbc9c0;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .spiritual-manual-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 104px;
+      padding: 10px;
+      border: 1px solid #ebe8df;
+      border-radius: 14px;
+      background: #fff;
+      transition: opacity .18s ease, background .18s ease;
+    }
+
+    .spiritual-manual-row.done { opacity: .48; background: #f2f1ec; }
+    .spiritual-manual-row.done .spiritual-text { text-decoration: line-through; }
+    .spiritual-fields { display: grid; gap: 7px; min-width: 0; }
+
+    .spiritual-text, .spiritual-date {
+      width: 100%;
+      height: 42px;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid #cbc9c0;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .spiritual-date { color: var(--muted); }
+
+    .spiritual-clear {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 11px;
+      border: 1px solid #c5c1b7;
+      border-radius: 11px;
+      background: #f8f6f0;
+      color: var(--ink);
+      font-weight: 700;
+    }
 
     .check {
       width: 27px;
@@ -589,6 +719,7 @@
       <button class="tab" data-tab="month" aria-selected="false">This Month</button>
       <button class="tab" data-tab="shopping" aria-selected="false">Shopping</button>
       <button class="tab" data-tab="bible" aria-selected="false">Bible Reading</button>
+      <button class="tab" data-tab="spiritual" aria-selected="false">Spiritual</button>
       <button class="tab" data-tab="data" aria-selected="false">Data</button>
     </nav>
 
@@ -611,6 +742,7 @@
       selected: {},
       purchased: {}
     });
+    const blankDatedEntries = () => Array.from({ length: 2 }, () => ({ done: false, text: "", date: "" }));
     const defaults = {
       choices: {
         today: blankChoices(),
@@ -629,7 +761,17 @@
         mode: "prepare",
         hidePurchased: false
       },
-      comingUp: Array.from({ length: 3 }, () => ({ done: false, text: "", date: "" }))
+      comingUp: Array.from({ length: 3 }, () => ({ done: false, text: "", date: "" })),
+      spiritual: {
+        dailyTextDate: "",
+        midweekDone: Array(4).fill(false),
+        sundaySubheadingCount: 3,
+        sundayDone: Array(5).fill(false),
+        sundayReviewDone: false,
+        upcomingParts: blankDatedEntries(),
+        customActivities: blankDatedEntries(),
+        openGroups: { midweek: true, sunday: false, upcoming: false, custom: false }
+      }
     };
 
     const readingIds = new Set(BIBLE_READING_GROUPS.flatMap(group => group.readings.map(reading => reading.id)));
@@ -691,6 +833,39 @@
           };
         });
       }
+      if (candidate.spiritual && typeof candidate.spiritual === "object") {
+        const spiritual = candidate.spiritual;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(String(spiritual.dailyTextDate ?? ""))) {
+          fresh.spiritual.dailyTextDate = String(spiritual.dailyTextDate);
+        }
+        if (Array.isArray(spiritual.midweekDone)) {
+          fresh.spiritual.midweekDone = fresh.spiritual.midweekDone.map((_, index) => Boolean(spiritual.midweekDone[index]));
+        }
+        const subheadingCount = Number(spiritual.sundaySubheadingCount);
+        if (Number.isInteger(subheadingCount) && subheadingCount >= 1 && subheadingCount <= 5) {
+          fresh.spiritual.sundaySubheadingCount = subheadingCount;
+        }
+        if (Array.isArray(spiritual.sundayDone)) {
+          fresh.spiritual.sundayDone = fresh.spiritual.sundayDone.map((_, index) =>
+            index < fresh.spiritual.sundaySubheadingCount && Boolean(spiritual.sundayDone[index])
+          );
+        }
+        fresh.spiritual.sundayReviewDone = Boolean(spiritual.sundayReviewDone);
+        for (const key of ["upcomingParts", "customActivities"]) {
+          if (!Array.isArray(spiritual[key])) continue;
+          fresh.spiritual[key] = fresh.spiritual[key].map((fallback, index) => {
+            const item = spiritual[key][index];
+            if (!item || typeof item !== "object") return fallback;
+            const date = /^\d{4}-\d{2}-\d{2}$/.test(String(item.date ?? "")) ? String(item.date) : "";
+            return { done: Boolean(item.done), text: String(item.text ?? "").slice(0, 200), date };
+          });
+        }
+        if (spiritual.openGroups && typeof spiritual.openGroups === "object") {
+          for (const key of Object.keys(fresh.spiritual.openGroups)) {
+            fresh.spiritual.openGroups[key] = Boolean(spiritual.openGroups[key]);
+          }
+        }
+      }
       return fresh;
     }
 
@@ -717,6 +892,13 @@
       return String(value).replace(/[&<>'"]/g, character => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
       })[character]);
+    }
+
+    function localDateKey(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     }
 
     function taskMarkup(section, task, index) {
@@ -879,6 +1061,105 @@
       else window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    function spiritualFixedRow(label, group, index, done) {
+      return `<label class="spiritual-check-row${done ? " done" : ""}">
+        <input class="check" data-action="spiritual-fixed" data-group="${group}" ${index === null ? "" : `data-index="${index}"`} type="checkbox" ${done ? "checked" : ""} aria-label="Mark ${escapeHtml(label)} complete">
+        <span>${escapeHtml(label)}</span>
+      </label>`;
+    }
+
+    function spiritualManualRows(list, label) {
+      return state.spiritual[list].map((item, index) => `<div class="spiritual-manual-row${item.done ? " done" : ""}">
+        <input class="check" data-action="spiritual-manual-done" data-list="${list}" data-index="${index}" type="checkbox" ${item.done ? "checked" : ""} aria-label="Mark ${label} ${index + 1} complete">
+        <div class="spiritual-fields">
+          <input class="spiritual-text" data-action="spiritual-manual-text" data-list="${list}" data-index="${index}" type="text" value="${escapeHtml(item.text)}" maxlength="200" placeholder="${label}" aria-label="${label} ${index + 1}">
+          <input class="spiritual-date" data-action="spiritual-manual-date" data-list="${list}" data-index="${index}" type="date" value="${escapeHtml(item.date)}" aria-label="Date for ${label} ${index + 1}">
+        </div>
+      </div>`).join("");
+    }
+
+    function spiritualMarkup() {
+      const spiritual = state.spiritual;
+      const dailyDone = spiritual.dailyTextDate === localDateKey();
+      const midweekLabels = ["Bible Reading", "Spiritual Gems", "Living as Christians", "Congregation Bible Study"];
+      const midweekCompleted = spiritual.midweekDone.filter(Boolean).length;
+      const sundayCompleted = spiritual.sundayDone.slice(0, spiritual.sundaySubheadingCount).filter(Boolean).length
+        + (spiritual.sundayReviewDone ? 1 : 0);
+      const sundayTotal = spiritual.sundaySubheadingCount + 1;
+      const upcomingCompleted = spiritual.upcomingParts.filter(item => item.done).length;
+      const customCompleted = spiritual.customActivities.filter(item => item.done).length;
+      const isOpen = group => spiritual.openGroups[group] ? " open" : "";
+
+      return `<section class="panel spiritual${activeTab === "spiritual" ? " active" : ""}" data-panel="spiritual">
+        <div class="section-head"><h2>Study &amp; Preparation</h2><span>Spiritual</span></div>
+        <label class="daily-text${dailyDone ? " done" : ""}">
+          <input class="check" data-action="spiritual-daily" type="checkbox" ${dailyDone ? "checked" : ""} aria-label="Mark Daily Text complete">
+          <span>Daily Text</span>
+        </label>
+        <div class="spiritual-groups">
+          <details class="spiritual-group" data-spiritual-group="midweek"${isOpen("midweek")}>
+            <summary><span>Midweek Meeting</span><span class="group-progress" data-progress="midweek">${midweekCompleted} of 4</span></summary>
+            <div class="spiritual-content">
+              <div class="spiritual-list">
+                ${midweekLabels.map((label, index) => spiritualFixedRow(label, "midweek", index, spiritual.midweekDone[index])).join("")}
+              </div>
+              <button class="spiritual-clear" data-action="spiritual-clear" data-group="midweek">Clear Midweek</button>
+            </div>
+          </details>
+          <details class="spiritual-group" data-spiritual-group="sunday"${isOpen("sunday")}>
+            <summary><span>Sunday Study</span><span class="group-progress" data-progress="sunday">${sundayCompleted} of ${sundayTotal}</span></summary>
+            <div class="spiritual-content">
+              <label class="sunday-count">Number of subheadings
+                <select data-action="spiritual-sunday-count" aria-label="Number of Sunday subheadings">
+                  ${[1, 2, 3, 4, 5].map(count => `<option value="${count}" ${count === spiritual.sundaySubheadingCount ? "selected" : ""}>${count}</option>`).join("")}
+                </select>
+              </label>
+              <div class="spiritual-list">
+                ${Array.from({ length: spiritual.sundaySubheadingCount }, (_, index) => spiritualFixedRow(`Subheading ${index + 1}`, "sunday", index, spiritual.sundayDone[index])).join("")}
+                ${spiritualFixedRow("Review Questions", "review", null, spiritual.sundayReviewDone)}
+              </div>
+              <button class="spiritual-clear" data-action="spiritual-clear" data-group="sunday">Clear Sunday</button>
+            </div>
+          </details>
+          <details class="spiritual-group" data-spiritual-group="upcoming"${isOpen("upcoming")}>
+            <summary><span>Upcoming Parts</span><span class="group-progress" data-progress="upcomingParts">${upcomingCompleted} of 2</span></summary>
+            <div class="spiritual-content">
+              <div class="spiritual-list">${spiritualManualRows("upcomingParts", "Upcoming part")}</div>
+              <button class="spiritual-clear" data-action="spiritual-clear-completed" data-list="upcomingParts">Clear Completed</button>
+            </div>
+          </details>
+          <details class="spiritual-group" data-spiritual-group="custom"${isOpen("custom")}>
+            <summary><span>Custom Activities</span><span class="group-progress" data-progress="customActivities">${customCompleted} of 2</span></summary>
+            <div class="spiritual-content">
+              <div class="spiritual-list">${spiritualManualRows("customActivities", "Custom activity")}</div>
+              <button class="spiritual-clear" data-action="spiritual-clear-completed" data-list="customActivities">Clear Completed</button>
+            </div>
+          </details>
+        </div>
+      </section>`;
+    }
+
+    function updateSpiritualProgress(group) {
+      const spiritual = state.spiritual;
+      let key = group;
+      let completed = 0;
+      let total = 0;
+      if (group === "midweek") {
+        completed = spiritual.midweekDone.filter(Boolean).length;
+        total = 4;
+      } else if (group === "sunday" || group === "review") {
+        key = "sunday";
+        completed = spiritual.sundayDone.slice(0, spiritual.sundaySubheadingCount).filter(Boolean).length
+          + (spiritual.sundayReviewDone ? 1 : 0);
+        total = spiritual.sundaySubheadingCount + 1;
+      } else {
+        completed = spiritual[group].filter(item => item.done).length;
+        total = 2;
+      }
+      const progress = main.querySelector(`[data-progress="${key}"]`);
+      if (progress) progress.textContent = `${completed} of ${total}`;
+    }
+
     function dataMarkup() {
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
         <div class="section-head"><h2>Data</h2><span>Lists and stores</span></div>
@@ -922,7 +1203,7 @@
     }
 
     function render() {
-      main.innerHTML = sections.map(sectionMarkup).join("") + shoppingMarkup() + bibleMarkup() + dataMarkup();
+      main.innerHTML = sections.map(sectionMarkup).join("") + shoppingMarkup() + bibleMarkup() + spiritualMarkup() + dataMarkup();
       document.querySelectorAll(".tab").forEach(button => {
         button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
       });
@@ -964,12 +1245,79 @@
         save();
         render();
       }
+      if (action === "spiritual-clear") {
+        const group = button.dataset.group;
+        const label = group === "midweek" ? "Midweek" : "Sunday";
+        if (!window.confirm(`Clear all ${label} checkmarks?`)) return;
+        if (group === "midweek") state.spiritual.midweekDone.fill(false);
+        if (group === "sunday") {
+          state.spiritual.sundayDone.fill(false);
+          state.spiritual.sundayReviewDone = false;
+        }
+        save();
+        render();
+      }
+      if (action === "spiritual-clear-completed") {
+        const list = button.dataset.list;
+        const completed = state.spiritual[list].filter(item => item.done).length;
+        if (!completed) return;
+        const label = list === "upcomingParts" ? "upcoming parts" : "custom activities";
+        if (!window.confirm(`Clear ${completed} completed ${label}?`)) return;
+        state.spiritual[list] = state.spiritual[list].map(item =>
+          item.done ? { done: false, text: "", date: "" } : item
+        );
+        save();
+        render();
+      }
     });
+
+    main.addEventListener("toggle", event => {
+      const details = event.target.closest?.("details[data-spiritual-group]");
+      if (!details) return;
+      state.spiritual.openGroups[details.dataset.spiritualGroup] = details.open;
+      save();
+    }, true);
 
     main.addEventListener("change", event => {
       const control = event.target;
-      const { action, section, index, id, store } = control.dataset;
+      const { action, section, index, id, store, group, list } = control.dataset;
       if (!action) return;
+      if (action === "spiritual-daily") {
+        state.spiritual.dailyTextDate = control.checked ? localDateKey() : "";
+        save();
+        control.closest(".daily-text").classList.toggle("done", control.checked);
+        return;
+      }
+      if (action === "spiritual-fixed") {
+        if (group === "midweek") state.spiritual.midweekDone[index] = control.checked;
+        if (group === "sunday") state.spiritual.sundayDone[index] = control.checked;
+        if (group === "review") state.spiritual.sundayReviewDone = control.checked;
+        save();
+        control.closest(".spiritual-check-row").classList.toggle("done", control.checked);
+        updateSpiritualProgress(group);
+        return;
+      }
+      if (action === "spiritual-sunday-count") {
+        const requestedCount = Number(control.value);
+        const count = Number.isInteger(requestedCount) ? Math.min(5, Math.max(1, requestedCount)) : 3;
+        state.spiritual.sundaySubheadingCount = count;
+        for (let hidden = count; hidden < 5; hidden += 1) state.spiritual.sundayDone[hidden] = false;
+        save();
+        render();
+        return;
+      }
+      if (action === "spiritual-manual-done") {
+        state.spiritual[list][index].done = control.checked;
+        save();
+        control.closest(".spiritual-manual-row").classList.toggle("done", control.checked);
+        updateSpiritualProgress(list);
+        return;
+      }
+      if (action === "spiritual-manual-date") {
+        state.spiritual[list][index].date = control.value;
+        save();
+        return;
+      }
       if (action === "coming-done") {
         state.comingUp[index].done = control.checked;
         save();
@@ -1043,7 +1391,7 @@
 
     main.addEventListener("input", event => {
       const control = event.target;
-      const { action, section, index, store } = control.dataset;
+      const { action, section, index, store, list } = control.dataset;
       if (action === "task-value" && control.tagName === "INPUT") {
         state.tasks[section][index].value = control.value;
         save();
@@ -1069,9 +1417,17 @@
         state.comingUp[index].text = control.value;
         save();
       }
+      if (action === "spiritual-manual-text") {
+        state.spiritual[list][index].text = control.value;
+        save();
+      }
     });
 
     render();
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && activeTab === "spiritual") render();
+    });
 
     if ("serviceWorker" in navigator) {
       let updateInProgress = false;
