@@ -41,16 +41,10 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - Purchased items remain visible with a line through them unless **Hide purchased** is enabled.
 - **Finish Trip** clears the current trip after confirmation but preserves the reusable master list.
 
-### Bible Reading
-
-- 364 reading sections stored separately in `bible-readings.js`.
-- Collapsible groups with progress totals.
-- The group containing the next unread section opens automatically.
-- Historical-overview and Christian-congregation markers are preserved.
-
 ### Spiritual
 
 - Daily Text checkbox that resets by comparing its saved completion date with the device's local date.
+- Daily Bible Reading checkbox with the same automatic daily reset behavior.
 - Collapsible Midweek Meeting preparation:
   - Bible Reading
   - Spiritual Gems
@@ -81,7 +75,6 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 | File | Responsibility |
 | --- | --- |
 | `index.html` | Page structure, styles, state schema, rendering, interaction logic, and service-worker registration. |
-| `bible-readings.js` | Static Bible reading groups and all 364 reading entries. |
 | `manifest.webmanifest` | PWA name, display mode, start URL, and colors. |
 | `service-worker.js` | Network-first loading, offline app-shell fallback, cache cleanup, and update activation. |
 | `README.md` | Current-state handoff, maintenance rules, and test expectations. |
@@ -103,9 +96,8 @@ The saved state currently contains:
 - `choices`: 15 reusable choices for Today, This Week, and This Month.
 - `tasks`: five task records for each of those three sections.
 - `comingUp`: three dated Today reminders.
-- `readingDone`: completed Bible-reading identifiers.
 - `shopping`: three stores, their names and master items, trip selections, purchases, active store, mode, and hide setting.
-- `spiritual`: Daily Text completion date, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
+- `spiritual`: Daily Text and Daily Bible Reading completion dates, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
 - `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
 
 `normalizedState()` is the migration boundary. Every new saved field must receive a safe default there, and old or malformed state must be normalized before rendering. Existing unrelated fields must remain compatible.
@@ -126,7 +118,7 @@ Saved information still belongs to the individual browser installation and does 
 - Native date inputs are used for lightweight iOS and Android compatibility.
 - User-provided text must pass through `escapeHtml()` before entering generated markup.
 
-Active-panel rendering keeps the large Bible Reading and Data interfaces out of the document when another tab is in use. Switching tabs reconstructs the selected panel from saved in-memory state.
+Active-panel rendering keeps inactive interfaces, especially the large Data interface, out of the document. Switching tabs reconstructs the selected panel from saved in-memory state.
 
 ## PWA and release procedure
 
@@ -146,14 +138,14 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v12
+personal-dashboard-v13
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
 
 ## Required verification for functional changes
 
-- JavaScript syntax checks for the inline app script, `bible-readings.js`, and `service-worker.js`.
+- JavaScript syntax checks for the inline app script and `service-worker.js`.
 - Whitespace/error check on the proposed diff.
 - First-launch defaults.
 - Migration from existing saved state.
