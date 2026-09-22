@@ -17,14 +17,11 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 
 ### Today
 
-- Five task positions: three reusable dropdown choices and two manual entries.
-- Three dated **Coming Up** entries beneath the main task list.
+- Ten task positions: three reusable dropdown choices and seven manual entries.
+- Five dated **Coming Up** entries in a collapsible section beneath the main task list.
+- The Coming Up heading shows the number of active items and the nearest relevant date while collapsed.
+- The Coming Up open or closed state is remembered.
 - Completed items remain visible with a line through them.
-
-### This Week
-
-- Five Monday-through-Friday task positions.
-- Three reusable dropdown choices and two manual entries.
 
 ### This Month
 
@@ -64,7 +61,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - A dated JSON backup contains the complete dashboard state.
 - Mobile devices use the share sheet when supported; desktop browsers use a normal download.
 - Restore accepts only a recognized backup format and replaces current data after confirmation.
-- Collapsible source lists for Today, This Week, and This Month.
+- Collapsible source lists for Today and This Month.
 - Collapsible store data with editable store names and reusable shopping items.
 - Collapsible Visible Tabs controls for every functional tab.
 - Data remains permanently visible so hidden tabs can always be restored.
@@ -93,9 +90,10 @@ The storage key is the data namespace, not the release number. Do not rename it 
 
 The saved state currently contains:
 
-- `choices`: 15 reusable choices for Today, This Week, and This Month.
-- `tasks`: five task records for each of those three sections.
-- `comingUp`: three dated Today reminders.
+- `choices`: 15 reusable choices for Today and This Month.
+- `tasks`: ten Today task records and five This Month task records.
+- `comingUp`: five dated Today reminders.
+- `comingUpOpen`: the remembered open or closed state of the Coming Up section.
 - `shopping`: three stores, their names and master items, trip selections, purchases, active store, mode, and hide setting.
 - `spiritual`: Daily Text and Daily Bible Reading completion dates, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
 - `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
@@ -138,7 +136,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v13
+personal-dashboard-v14
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
