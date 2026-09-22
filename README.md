@@ -58,6 +58,8 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 ### Data
 
 - Collapsible Backup & Restore section.
+- Collapsible Appearance section with Green, Blue, Orange, and Dark themes.
+- Theme changes apply immediately, persist locally, and are included in backup and restore.
 - A dated JSON backup contains the complete dashboard state.
 - Mobile devices use the share sheet when supported; desktop browsers use a normal download.
 - Restore accepts only a recognized backup format and replaces current data after confirmation.
@@ -90,6 +92,7 @@ The storage key is the data namespace, not the release number. Do not rename it 
 
 The saved state currently contains:
 
+- `theme`: the selected Green, Blue, Orange, or Dark appearance palette.
 - `choices`: 15 reusable choices for Today and This Month.
 - `tasks`: ten Today task records and five This Month task records.
 - `comingUp`: five dated Today reminders.
@@ -136,7 +139,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v14
+personal-dashboard-v15
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
