@@ -7,6 +7,12 @@
   <meta name="description" content="A calm, phone-friendly personal task dashboard.">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Personal Dashboard</title>
+  <script>
+    try {
+      const savedTheme = JSON.parse(localStorage.getItem("personal-dashboard-v1"))?.theme;
+      if (["green", "blue", "orange", "dark"].includes(savedTheme)) document.documentElement.dataset.theme = savedTheme;
+    } catch { /* Use the default palette if saved appearance data is unavailable. */ }
+  </script>
   <style>
     :root {
       color-scheme: light;
@@ -21,7 +27,66 @@
       --spiritual: #dcebe5;
       --data: #dfe5df;
       --accent: #315f4b;
+      --strong: #252923;
+      --on-strong: #fff;
+      --on-accent: #fff;
+      --control: #fff;
+      --completed: #f2f1ec;
+      --soft-line: #ebe8df;
+      --control-border: #cbc9c0;
+      --input-border: #cfcdc4;
+      --button-border: #c5c1b7;
+      --button-surface: #f8f6f0;
+      --switch-surface: #e9e6dd;
+      --accent-soft: #f3f8f5;
+      --danger-border: #a94a45;
+      --danger-surface: #fff7f5;
+      --danger-ink: #873a36;
+      --backup-border: #bbb8ae;
+      --error: #9a3732;
+      --section-meta: rgba(37, 41, 35, .66);
+      --glow: rgba(255,255,255,.8);
+      --app-surface: rgba(255, 254, 250, .92);
+      --nav-surface: rgba(255, 254, 250, .96);
+      --control-shadow: 0 2px 8px rgba(45, 52, 45, .1);
+      --focus: rgba(49, 95, 75, .38);
+      --done-opacity: .48;
       --shadow: 0 10px 30px rgba(45, 52, 45, .08);
+    }
+
+    html[data-theme="blue"] {
+      --ink: #172c40; --muted: #566c7d; --paper: #fdfefe; --canvas: #edf3f8; --line: #cbd8e3;
+      --today: #cfe2f3; --month: #ede4c7; --shopping: #eadbd4; --spiritual: #d9e8e4; --data: #dfe6eb;
+      --accent: #356b9a; --strong: #172c40; --completed: #e8f0fa; --soft-line: #dce6ee;
+      --control-border: #91a9bd; --input-border: #9fb4c5; --button-border: #9eb1c1;
+      --button-surface: #eef4f9; --switch-surface: #dce6ef; --accent-soft: #edf5fb;
+      --section-meta: rgba(23, 44, 64, .66); --shadow: 0 10px 30px rgba(32, 76, 112, .1);
+      --control-shadow: 0 2px 8px rgba(32, 76, 112, .12); --focus: rgba(53, 107, 154, .42);
+    }
+
+    html[data-theme="orange"] {
+      --ink: #3c291d; --muted: #776354; --paper: #fffdfa; --canvas: #faf6f1; --line: #e4d2c3;
+      --today: #f1dfd0; --month: #f8e7bf; --shopping: #f4d6c7; --spiritual: #e8e2ce; --data: #eee0d6;
+      --accent: #a85520; --strong: #3c291d; --completed: #f7eadc; --soft-line: #eddfd3;
+      --control-border: #bfa48e; --input-border: #c9b19d; --button-border: #c7ad97;
+      --button-surface: #fbf0e6; --switch-surface: #f0e2d5; --accent-soft: #fff2e7;
+      --section-meta: rgba(60, 41, 29, .66); --shadow: 0 10px 30px rgba(112, 66, 32, .1);
+      --control-shadow: 0 2px 8px rgba(112, 66, 32, .12); --focus: rgba(168, 85, 32, .4);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --ink: #edf5f0; --muted: #afc0b6; --paper: #18231e; --canvas: #101713; --line: #3a5144;
+      --today: #24394a; --month: #413923; --shopping: #442e27; --spiritual: #23382f; --data: #2b3630;
+      --accent: #6fc18f; --strong: #6fc18f; --on-strong: #102117; --on-accent: #102117;
+      --control: #1d2a24; --completed: #223229; --soft-line: #31443a; --control-border: #668071;
+      --input-border: #52695c; --button-border: #566f61; --button-surface: #202e27;
+      --switch-surface: #26372e; --accent-soft: #20362a; --danger-border: #704545;
+      --danger-surface: #2d1d1d; --danger-ink: #ffaaaa; --backup-border: #668071; --error: #ffaaaa;
+      --section-meta: rgba(237, 245, 240, .7); --glow: rgba(111, 193, 143, .08);
+      --app-surface: rgba(24, 35, 30, .96); --nav-surface: rgba(24, 35, 30, .98);
+      --shadow: 0 10px 30px rgba(0, 0, 0, .28); --control-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+      --focus: rgba(131, 191, 255, .5); --done-opacity: .68;
     }
 
     * { box-sizing: border-box; }
@@ -33,7 +98,7 @@
       min-height: 100vh;
       min-height: 100dvh;
       background:
-        radial-gradient(circle at top right, rgba(255,255,255,.8), transparent 38%),
+        radial-gradient(circle at top right, var(--glow), transparent 38%),
         var(--canvas);
       color: var(--ink);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -48,7 +113,7 @@
       width: min(100%, 620px);
       min-height: 100vh;
       margin: 0 auto;
-      background: rgba(255, 254, 250, .92);
+      background: var(--app-surface);
       box-shadow: var(--shadow);
     }
 
@@ -86,7 +151,7 @@
       gap: 8px;
       overflow-x: auto;
       padding: 11px 14px;
-      background: rgba(255, 254, 250, .96);
+      background: var(--nav-surface);
       border-bottom: 1px solid var(--line);
       scrollbar-width: none;
       position: sticky;
@@ -101,16 +166,16 @@
       padding: 9px 14px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-weight: 650;
       white-space: nowrap;
     }
 
     .tab[aria-selected="true"] {
-      background: var(--ink);
-      border-color: var(--ink);
-      color: #fff;
+      background: var(--strong);
+      border-color: var(--strong);
+      color: var(--on-strong);
     }
 
     main { padding: 16px 14px calc(28px + env(safe-area-inset-bottom)); }
@@ -136,7 +201,7 @@
     }
 
     .section-head span {
-      color: rgba(37, 41, 35, .66);
+      color: var(--section-meta);
       font-size: .8rem;
       font-weight: 650;
     }
@@ -162,7 +227,7 @@
       transition: opacity .18s ease, background .18s ease;
     }
 
-    .task.done { opacity: .48; background: #f2f1ec; }
+    .task.done { opacity: var(--done-opacity); background: var(--completed); }
     .task.done .task-control { text-decoration: line-through; }
 
     .coming-up {
@@ -207,7 +272,7 @@
       transition: opacity .18s ease, background .18s ease;
     }
 
-    .coming-item.done { opacity: .48; background: #f2f1ec; }
+    .coming-item.done { opacity: var(--done-opacity); background: var(--completed); }
     .coming-item.done .coming-text { text-decoration: line-through; }
 
     .coming-fields { display: grid; gap: 7px; min-width: 0; }
@@ -217,9 +282,9 @@
       height: 42px;
       min-height: 42px;
       padding: 8px 10px;
-      border: 1px solid #cbc9c0;
+      border: 1px solid var(--control-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-size: 16px;
       line-height: 1.25;
@@ -247,7 +312,7 @@
       transition: opacity .18s ease, background .18s ease;
     }
 
-    .daily-text.done { opacity: .48; background: #f2f1ec; }
+    .daily-text.done { opacity: var(--done-opacity); background: var(--completed); }
     .daily-text.done span { text-decoration: line-through; }
 
     .spiritual-groups { display: grid; gap: 10px; }
@@ -272,7 +337,7 @@
     }
 
     .spiritual-group[open] summary {
-      background: color-mix(in srgb, var(--spiritual) 62%, white);
+      background: color-mix(in srgb, var(--spiritual) 62%, var(--control));
       border-bottom: 1px solid var(--line);
     }
 
@@ -286,13 +351,13 @@
       align-items: center;
       min-height: 56px;
       padding: 8px 10px;
-      border: 1px solid #ebe8df;
+      border: 1px solid var(--soft-line);
       border-radius: 13px;
-      background: #fff;
+      background: var(--control);
       transition: opacity .18s ease, background .18s ease;
     }
 
-    .spiritual-check-row.done { opacity: .48; background: #f2f1ec; }
+    .spiritual-check-row.done { opacity: var(--done-opacity); background: var(--completed); }
     .spiritual-check-row.done span { text-decoration: line-through; }
 
     .sunday-count {
@@ -310,9 +375,9 @@
       width: 100%;
       height: 42px;
       padding: 7px 9px;
-      border: 1px solid #cbc9c0;
+      border: 1px solid var(--control-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-size: 16px;
     }
@@ -324,13 +389,13 @@
       align-items: center;
       min-height: 104px;
       padding: 10px;
-      border: 1px solid #ebe8df;
+      border: 1px solid var(--soft-line);
       border-radius: 14px;
-      background: #fff;
+      background: var(--control);
       transition: opacity .18s ease, background .18s ease;
     }
 
-    .spiritual-manual-row.done { opacity: .48; background: #f2f1ec; }
+    .spiritual-manual-row.done { opacity: var(--done-opacity); background: var(--completed); }
     .spiritual-manual-row.done .spiritual-text { text-decoration: line-through; }
     .spiritual-fields { display: grid; gap: 7px; min-width: 0; }
 
@@ -339,9 +404,9 @@
       height: 42px;
       min-height: 42px;
       padding: 8px 10px;
-      border: 1px solid #cbc9c0;
+      border: 1px solid var(--control-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-size: 16px;
       line-height: 1.25;
@@ -353,9 +418,9 @@
       width: 100%;
       min-height: 44px;
       margin-top: 11px;
-      border: 1px solid #c5c1b7;
+      border: 1px solid var(--button-border);
       border-radius: 11px;
-      background: #f8f6f0;
+      background: var(--button-surface);
       color: var(--ink);
       font-weight: 700;
     }
@@ -383,9 +448,9 @@
       width: 100%;
       min-height: 44px;
       padding: 9px 11px;
-      border: 1px solid #cbc9c0;
+      border: 1px solid var(--control-border);
       border-radius: 11px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-size: 1rem;
     }
@@ -422,16 +487,16 @@
       padding: 8px 13px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-weight: 650;
       white-space: nowrap;
     }
 
     .store-button[aria-pressed="true"] {
-      background: var(--ink);
-      border-color: var(--ink);
-      color: #fff;
+      background: var(--strong);
+      border-color: var(--strong);
+      color: var(--on-strong);
     }
 
     .mode-switch {
@@ -439,11 +504,11 @@
       grid-template-columns: 1fr 1fr;
       padding: 4px;
       border-radius: 14px;
-      background: #e9e6dd;
+      background: var(--switch-surface);
     }
 
     .mode-button { border: 0; background: transparent; }
-    .mode-button[aria-pressed="true"] { background: var(--paper); box-shadow: 0 2px 8px rgba(45, 52, 45, .1); }
+    .mode-button[aria-pressed="true"] { background: var(--paper); box-shadow: var(--control-shadow); }
 
     .shopping-options {
       display: flex;
@@ -485,7 +550,7 @@
     }
 
     .shopping-item:last-child { margin-bottom: 0; }
-    .shopping-item.done { opacity: .48; background: #f2f1ec; }
+    .shopping-item.done { opacity: var(--done-opacity); background: var(--completed); }
     .shopping-item.done .shopping-item-text { text-decoration: line-through; }
     .shopping-item.removing {
       min-height: 0;
@@ -503,7 +568,7 @@
     .empty-state {
       margin: 0;
       padding: 22px 18px;
-      border: 1px dashed #cbc9c0;
+      border: 1px dashed var(--control-border);
       border-radius: 14px;
       color: var(--muted);
       line-height: 1.45;
@@ -514,10 +579,10 @@
       width: 100%;
       min-height: 48px;
       margin-top: 14px;
-      border: 1px solid #a94a45;
+      border: 1px solid var(--danger-border);
       border-radius: 13px;
-      background: #fff7f5;
-      color: #873a36;
+      background: var(--danger-surface);
+      color: var(--danger-ink);
       font-weight: 750;
     }
 
@@ -557,9 +622,9 @@
       justify-content: center;
       min-height: 48px;
       padding: 9px 11px;
-      border: 1px solid #bbb8ae;
+      border: 1px solid var(--backup-border);
       border-radius: 12px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-weight: 700;
       text-align: center;
@@ -568,7 +633,7 @@
     .backup-button.primary {
       border-color: var(--accent);
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     .backup-file {
@@ -589,7 +654,7 @@
       line-height: 1.35;
     }
 
-    .backup-status.error { color: #9a3732; }
+    .backup-status.error { color: var(--error); }
 
     .visibility-data { border-left: 6px solid var(--accent); }
     .visibility-list { display: grid; gap: 7px; }
@@ -601,9 +666,9 @@
       align-items: center;
       min-height: 48px;
       padding: 7px 9px;
-      border: 1px solid #ebe8df;
+      border: 1px solid var(--soft-line);
       border-radius: 12px;
-      background: #fff;
+      background: var(--control);
       font-weight: 650;
     }
 
@@ -631,9 +696,10 @@
       height: 42px;
       min-height: 42px;
       padding: 8px 10px;
-      border: 1px solid #cfcdc4;
+      border: 1px solid var(--input-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--control);
+      color: var(--ink);
       font-size: 16px;
       line-height: 1.25;
     }
@@ -670,7 +736,7 @@
       margin: 0 0 12px;
       border: 1px solid var(--accent);
       border-radius: 11px;
-      background: #f3f8f5;
+      background: var(--accent-soft);
       color: var(--accent);
       font-weight: 750;
     }
@@ -690,9 +756,9 @@
       height: 44px;
       min-height: 44px;
       padding: 9px 11px;
-      border: 1px solid #cfcdc4;
+      border: 1px solid var(--input-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--control);
       color: var(--ink);
       font-size: 16px;
       line-height: 1.25;
@@ -701,7 +767,35 @@
       text-transform: none;
     }
 
-    :focus-visible { outline: 3px solid rgba(49, 95, 75, .38); outline-offset: 2px; }
+    .appearance-data { border-left: 6px solid var(--accent); }
+
+    .theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+
+    .theme-option {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) 18px;
+      gap: 8px;
+      align-items: center;
+      min-height: 50px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--control);
+      color: var(--ink);
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .theme-option[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+    .theme-swatch { width: 25px; height: 25px; border: 2px solid var(--control-border); border-radius: 50%; }
+    .swatch-green { background: #315f4b; }
+    .swatch-blue { background: #356b9a; }
+    .swatch-orange { background: #a85520; }
+    .swatch-dark { background: #18231e; }
+    .theme-selected { color: var(--accent); visibility: hidden; }
+    .theme-option[aria-pressed="true"] .theme-selected { visibility: visible; }
+
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
     @media (min-width: 621px) {
       body { padding: 28px 0; }
@@ -739,6 +833,9 @@
     const STORAGE_KEY = "personal-dashboard-v1";
     const BACKUP_APP_ID = "personal-dashboard";
     const BACKUP_FORMAT_VERSION = 1;
+    const VALID_THEMES = ["green", "blue", "orange", "dark"];
+    const THEME_LABELS = { green: "Green", blue: "Blue", orange: "Orange", dark: "Dark" };
+    const THEME_COLORS = { green: "#f6f3ec", blue: "#356b9a", orange: "#984b1b", dark: "#101713" };
     const sections = [
       { id: "today", title: "Today", className: "today", note: "10 items" },
       { id: "month", title: "This Month", className: "month", note: "5 items" }
@@ -759,6 +856,7 @@
     });
     const blankDatedEntries = () => Array.from({ length: 2 }, () => ({ done: false, text: "", date: "" }));
     const defaults = {
+      theme: "green",
       choices: {
         today: blankChoices(),
         month: blankChoices()
@@ -792,6 +890,7 @@
     function normalizedState(candidate) {
       const fresh = structuredClone(defaults);
       if (!candidate || typeof candidate !== "object") return fresh;
+      if (VALID_THEMES.includes(candidate.theme)) fresh.theme = candidate.theme;
       for (const section of sections) {
         const id = section.id;
         if (Array.isArray(candidate.choices?.[id])) {
@@ -893,6 +992,7 @@
     }
 
     let state = loadState();
+    applyTheme(state.theme);
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     catch { /* Continue with in-memory state if storage is temporarily unavailable. */ }
     let activeTab = "today";
@@ -904,6 +1004,12 @@
       saveStatus.textContent = "Saved";
       clearTimeout(save.timer);
       save.timer = setTimeout(() => saveStatus.textContent = "Saved on this device", 900);
+    }
+
+    function applyTheme(theme) {
+      const safeTheme = VALID_THEMES.includes(theme) ? theme : "green";
+      document.documentElement.dataset.theme = safeTheme;
+      document.querySelector('meta[name="theme-color"]').content = THEME_COLORS[safeTheme];
     }
 
     function escapeHtml(value) {
@@ -1011,6 +1117,7 @@
           return;
         }
         state = normalizedState(payload.data);
+        applyTheme(state.theme);
         save();
         activeTab = "data";
         render();
@@ -1301,6 +1408,19 @@
               <p class="backup-status" id="backupStatus" aria-live="polite"></p>
             </div>
           </details>
+          <details class="data-group appearance-data">
+            <summary><span>Appearance</span><span class="group-progress" id="appearanceTheme">${THEME_LABELS[state.theme]}</span></summary>
+            <div class="data-group-content">
+              <p class="helper">Choose a color theme. The selection applies immediately and is saved with this dashboard.</p>
+              <div class="theme-options" role="group" aria-label="Appearance theme">
+                ${VALID_THEMES.map(theme => `<button class="theme-option" data-action="theme-select" data-theme="${theme}" type="button" aria-pressed="${state.theme === theme}">
+                  <span class="theme-swatch swatch-${theme}" aria-hidden="true"></span>
+                  <span>${THEME_LABELS[theme]}</span>
+                  <span class="theme-selected" aria-hidden="true">✓</span>
+                </button>`).join("")}
+              </div>
+            </div>
+          </details>
           <details class="data-group visibility-data">
             <summary><span>Visible Tabs</span><span class="group-progress" id="visibilityProgress">${visibleTabCount} of ${configurableTabs.length}</span></summary>
             <div class="data-group-content">
@@ -1393,9 +1513,21 @@
     main.addEventListener("click", async event => {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
-      const { action, store, mode } = button.dataset;
+      const { action, store, mode, theme } = button.dataset;
       if (action === "backup-export") {
         await exportBackup();
+        return;
+      }
+      if (action === "theme-select") {
+        if (!VALID_THEMES.includes(theme)) return;
+        state.theme = theme;
+        applyTheme(theme);
+        save();
+        main.querySelectorAll('[data-action="theme-select"]').forEach(option => {
+          option.setAttribute("aria-pressed", String(option.dataset.theme === theme));
+        });
+        const label = document.getElementById("appearanceTheme");
+        if (label) label.textContent = THEME_LABELS[theme];
         return;
       }
       if (action === "shopping-alphabetize") {
