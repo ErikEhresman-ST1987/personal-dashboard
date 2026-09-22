@@ -16,7 +16,6 @@
       --canvas: #f3f0e8;
       --line: #dedbd1;
       --today: #d1e5f9;
-      --week: #d6efd6;
       --month: #f9eacc;
       --shopping: #f5ddcf;
       --spiritual: #dcebe5;
@@ -143,7 +142,6 @@
     }
 
     .today .section-head { background: var(--today); }
-    .week .section-head { background: var(--week); }
     .month .section-head { background: var(--month); }
     .shopping .section-head { background: var(--shopping); }
     .spiritual .section-head { background: var(--spiritual); }
@@ -174,12 +172,17 @@
     }
 
     .coming-up-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 12px;
-      margin: 0 2px 10px;
+      align-items: center;
+      min-height: 48px;
+      margin: 0 2px;
+      cursor: pointer;
+      list-style-position: inside;
     }
+
+    .coming-up[open] .coming-up-head { margin-bottom: 10px; }
 
     .coming-up-head h3 {
       margin: 0;
@@ -636,7 +639,6 @@
     }
 
     .today-data { border-left: 6px solid var(--today); }
-    .week-data { border-left: 6px solid var(--week); }
     .month-data { border-left: 6px solid var(--month); }
 
     .shopping-data-heading { margin: 22px 2px 10px; font-size: 1.05rem; }
@@ -724,7 +726,6 @@
 
     <nav aria-label="Dashboard sections">
       <button class="tab" data-tab="today" aria-selected="true">Today</button>
-      <button class="tab" data-tab="week" aria-selected="false">This Week</button>
       <button class="tab" data-tab="month" aria-selected="false">This Month</button>
       <button class="tab" data-tab="shopping" aria-selected="false">Shopping</button>
       <button class="tab" data-tab="spiritual" aria-selected="false">Spiritual</button>
@@ -739,13 +740,11 @@
     const BACKUP_APP_ID = "personal-dashboard";
     const BACKUP_FORMAT_VERSION = 1;
     const sections = [
-      { id: "today", title: "Today", className: "today", note: "5 items" },
-      { id: "week", title: "This Week", className: "week", note: "Monday–Friday", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
+      { id: "today", title: "Today", className: "today", note: "10 items" },
       { id: "month", title: "This Month", className: "month", note: "5 items" }
     ];
     const configurableTabs = [
       { id: "today", label: "Today" },
-      { id: "week", label: "This Week" },
       { id: "month", label: "This Month" },
       { id: "shopping", label: "Shopping" },
       { id: "spiritual", label: "Spiritual" }
@@ -762,12 +761,10 @@
     const defaults = {
       choices: {
         today: blankChoices(),
-        week: blankChoices(),
         month: blankChoices()
       },
       tasks: {
-        today: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
-        week: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
+        today: Array.from({ length: 10 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
         month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
       },
       shopping: {
@@ -776,7 +773,8 @@
         mode: "prepare",
         hidePurchased: false
       },
-      comingUp: Array.from({ length: 3 }, () => ({ done: false, text: "", date: "" })),
+      comingUp: Array.from({ length: 5 }, () => ({ done: false, text: "", date: "" })),
+      comingUpOpen: true,
       spiritual: {
         dailyTextDate: "",
         dailyBibleReadingDate: "",
@@ -842,6 +840,7 @@
           };
         });
       }
+      if (typeof candidate.comingUpOpen === "boolean") fresh.comingUpOpen = candidate.comingUpOpen;
       if (candidate.spiritual && typeof candidate.spiritual === "object") {
         const spiritual = candidate.spiritual;
         if (/^\d{4}-\d{2}-\d{2}$/.test(String(spiritual.dailyTextDate ?? ""))) {
@@ -1048,9 +1047,31 @@
       return values.map(value => `<option value="${escapeHtml(value)}" ${value === currentValue ? "selected" : ""}>${escapeHtml(value)}</option>`).join("");
     }
 
+    function shortDateLabel(dateString) {
+      const [year, month, day] = dateString.split("-").map(Number);
+      return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" })
+        .format(new Date(year, month - 1, day));
+    }
+
+    function comingUpSummary() {
+      const activeItems = state.comingUp.filter(item => !item.done && (item.text.trim() || item.date));
+      if (!activeItems.length) return "No active items";
+      const nextDate = activeItems.map(item => item.date).filter(Boolean).sort()[0];
+      if (!nextDate) return `${activeItems.length} active`;
+      const dateLabel = shortDateLabel(nextDate);
+      if (nextDate < localDateKey()) return `${activeItems.length} active · ${dateLabel} overdue`;
+      if (nextDate === localDateKey()) return `${activeItems.length} active · Due today`;
+      return `${activeItems.length} active · Next ${dateLabel}`;
+    }
+
+    function updateComingUpSummary() {
+      const summary = document.getElementById("comingUpSummary");
+      if (summary) summary.textContent = comingUpSummary();
+    }
+
     function comingUpMarkup() {
-      return `<div class="coming-up">
-        <div class="coming-up-head"><h3>Coming Up</h3><span>3 dated reminders</span></div>
+      return `<details class="coming-up" data-coming-up${state.comingUpOpen ? " open" : ""}>
+        <summary class="coming-up-head"><h3>Coming Up</h3><span id="comingUpSummary">${escapeHtml(comingUpSummary())}</span></summary>
         <div class="coming-list">
           ${state.comingUp.map((item, index) => `<div class="coming-item${item.done ? " done" : ""}">
             <input class="check" data-action="coming-done" data-index="${index}" type="checkbox" ${item.done ? "checked" : ""} aria-label="Mark Coming Up item ${index + 1} complete">
@@ -1060,7 +1081,7 @@
             </div>
           </div>`).join("")}
         </div>
-      </div>`;
+      </details>`;
     }
 
     function sectionMarkup(section) {
@@ -1440,6 +1461,12 @@
     });
 
     main.addEventListener("toggle", event => {
+      const comingUp = event.target.closest?.("details[data-coming-up]");
+      if (comingUp) {
+        state.comingUpOpen = comingUp.open;
+        save();
+        return;
+      }
       const details = event.target.closest?.("details[data-spiritual-group]");
       if (!details) return;
       state.spiritual.openGroups[details.dataset.spiritualGroup] = details.open;
@@ -1508,11 +1535,13 @@
         state.comingUp[index].done = control.checked;
         save();
         control.closest(".coming-item").classList.toggle("done", control.checked);
+        updateComingUpSummary();
         return;
       }
       if (action === "coming-date") {
         state.comingUp[index].date = control.value;
         save();
+        updateComingUpSummary();
         return;
       }
       if (action === "shopping-select") {
@@ -1584,6 +1613,7 @@
       if (action === "coming-text") {
         state.comingUp[index].text = control.value;
         save();
+        updateComingUpSummary();
       }
       if (action === "spiritual-manual-text") {
         state.spiritual[list][index].text = control.value;
