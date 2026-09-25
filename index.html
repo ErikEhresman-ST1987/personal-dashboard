@@ -212,6 +212,7 @@
     .spiritual .section-head { background: var(--spiritual); }
     .data .section-head { background: var(--data); }
 
+    .today-options { margin: -3px 2px 10px; }
     .task-list { display: grid; gap: 10px; }
 
     .task {
@@ -224,11 +225,23 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       background: var(--paper);
-      transition: opacity .18s ease, background .18s ease;
+      max-height: 200px;
+      transition: opacity .18s ease, background .18s ease, max-height .23s ease,
+        min-height .23s ease, padding .23s ease, border-width .23s ease;
     }
 
     .task.done { opacity: var(--done-opacity); background: var(--completed); }
     .task.done .task-control { text-decoration: line-through; }
+    .task.removing {
+      min-height: 0;
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top-width: 0;
+      border-bottom-width: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
 
     .coming-up {
       margin-top: 20px;
@@ -857,6 +870,7 @@
     const blankDatedEntries = () => Array.from({ length: 2 }, () => ({ done: false, text: "", date: "" }));
     const defaults = {
       theme: "green",
+      hideCompletedToday: true,
       choices: {
         today: blankChoices(),
         month: blankChoices()
@@ -891,6 +905,7 @@
       const fresh = structuredClone(defaults);
       if (!candidate || typeof candidate !== "object") return fresh;
       if (VALID_THEMES.includes(candidate.theme)) fresh.theme = candidate.theme;
+      if (typeof candidate.hideCompletedToday === "boolean") fresh.hideCompletedToday = candidate.hideCompletedToday;
       for (const section of sections) {
         const id = section.id;
         if (Array.isArray(candidate.choices?.[id])) {
@@ -1192,9 +1207,16 @@
     }
 
     function sectionMarkup(section) {
+      const tasks = state.tasks[section.id];
+      const visibleTasks = tasks.map((task, index) => ({ task, index }))
+        .filter(({ task }) => section.id !== "today" || !state.hideCompletedToday || !task.done);
       return `<section class="panel ${section.className}${activeTab === section.id ? " active" : ""}" data-panel="${section.id}">
         <div class="section-head"><h2>${section.title}</h2><span>${section.note}</span></div>
-        <div class="task-list">${state.tasks[section.id].map((task, index) => taskMarkup(section, task, index)).join("")}</div>
+        ${section.id === "today" ? `<div class="today-options">
+          <label class="toggle-control"><input data-action="today-hide-completed" type="checkbox" ${state.hideCompletedToday ? "checked" : ""}>Hide completed</label>
+        </div>` : ""}
+        <div class="task-list">${visibleTasks.map(({ task, index }) => taskMarkup(section, task, index)).join("")
+          || (section.id === "today" ? `<p class="empty-state">All Today tasks are complete. Turn off Hide completed to review them.</p>` : "")}</div>
         ${section.id === "today" ? comingUpMarkup() : ""}
       </section>`;
     }
@@ -1711,11 +1733,32 @@
         render();
         return;
       }
-      if (action === "task-done") state.tasks[section][index].done = control.checked;
+      if (action === "today-hide-completed") {
+        state.hideCompletedToday = control.checked;
+        save();
+        render();
+        return;
+      }
+      if (action === "task-done") {
+        state.tasks[section][index].done = control.checked;
+        save();
+        const row = control.closest(".task");
+        row.classList.toggle("done", control.checked);
+        if (section === "today" && state.hideCompletedToday && control.checked) {
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) row.remove();
+          else {
+            requestAnimationFrame(() => row.classList.add("removing"));
+            setTimeout(() => row.remove(), 230);
+          }
+          if (state.tasks.today.every(task => task.done)) setTimeout(() => {
+            if (activeTab === "today") render();
+          }, 230);
+        }
+        return;
+      }
       if (action === "task-value") state.tasks[section][index].value = control.value;
       if (action === "choice") state.choices[section][index] = control.value.trim();
       save();
-      if (action === "task-done") render();
     });
 
     main.addEventListener("input", event => {
