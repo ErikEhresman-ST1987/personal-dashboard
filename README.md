@@ -18,10 +18,11 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 ### Today
 
 - Ten task positions: three reusable dropdown choices and seven manual entries.
+- **Hide completed** is on by default for the main Today list. Completed rows briefly show their checkmark and then close; turning the switch off reveals them in their original slots for review or unchecking.
 - Five dated **Coming Up** entries in a collapsible section beneath the main task list.
 - The Coming Up heading shows the number of active items and the nearest relevant date while collapsed.
 - The Coming Up open or closed state is remembered.
-- Completed items remain visible with a line through them.
+- Coming Up items remain visible with a line through them when completed.
 
 ### This Month
 
@@ -93,6 +94,7 @@ The storage key is the data namespace, not the release number. Do not rename it 
 The saved state currently contains:
 
 - `theme`: the selected Green, Blue, Orange, or Dark appearance palette.
+- `hideCompletedToday`: the main Today list's saved Hide completed preference (defaults to on for older saves).
 - `choices`: 15 reusable choices for Today and This Month.
 - `tasks`: ten Today task records and five This Month task records.
 - `comingUp`: five dated Today reminders.
@@ -139,7 +141,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v15
+personal-dashboard-v16
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
