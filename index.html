@@ -578,17 +578,22 @@
     }
     .shopping-item-text { min-width: 0; line-height: 1.3; }
 
-    .shopping-item-details {
+    .shopping-item.prepare {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .shopping-select-main {
       min-width: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
       gap: 10px;
+      align-items: center;
+      min-height: 44px;
     }
 
     .shopping-quantity-input {
       width: 68px;
-      min-height: 40px;
+      min-height: 44px;
       padding: 6px 8px;
       border: 1px solid var(--input-border);
       border-radius: 10px;
@@ -1304,12 +1309,12 @@
       const progress = mode === "prepare" ? `${selected.length} selected` : `${purchasedCount} of ${selected.length}`;
 
       const prepareList = available.length
-        ? `<div class="shopping-list">${available.map(item => `<div class="shopping-item">
-            <input class="check" data-action="shopping-select" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.selected[item.index] ? "checked" : ""} aria-label="Add ${escapeHtml(item.text)} to the ${escapeHtml(name)} trip">
-            <div class="shopping-item-details">
+        ? `<div class="shopping-list">${available.map(item => `<div class="shopping-item prepare">
+            <label class="shopping-select-main">
+              <input class="check" data-action="shopping-select" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.selected[item.index] ? "checked" : ""} aria-label="Add ${escapeHtml(item.text)} to the ${escapeHtml(name)} trip">
               <span class="shopping-item-text">${escapeHtml(item.text)}</span>
-              ${store.selected[item.index] ? `<input class="shopping-quantity-input" data-action="shopping-quantity" data-store="${activeStore}" data-index="${item.index}" type="number" inputmode="numeric" min="1" max="99" step="1" value="${store.quantities[item.index] ?? ""}" placeholder="Qty" aria-label="Quantity for ${escapeHtml(item.text)}">` : ""}
-            </div>
+            </label>
+            ${store.selected[item.index] ? `<input class="shopping-quantity-input" data-action="shopping-quantity" data-store="${activeStore}" data-index="${item.index}" type="number" inputmode="numeric" min="1" max="99" step="1" value="${store.quantities[item.index] ?? ""}" placeholder="Qty" aria-label="Quantity for ${escapeHtml(item.text)}">` : ""}
           </div>`).join("")}</div>`
         : `<p class="empty-state">No reusable items have been entered for ${escapeHtml(name)} yet. Add them in the Data tab.</p>`;
 
