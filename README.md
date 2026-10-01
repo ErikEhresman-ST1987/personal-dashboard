@@ -32,12 +32,13 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 ### Shopping
 
 - Three editable stores with up to 100 reusable items per store.
-- **Prepare List** mode selects items for a trip.
+- **Prepare List** mode selects items for a trip and can optionally assign a trip-specific whole-number quantity from 1–99.
+- Quantity stays visually absent when it is not needed; selected items with a quantity show that quantity in **Shop** mode.
 - **Shop** mode shows only selected items.
 - Items are displayed alphabetically without changing their saved positions.
-- Each store’s Data section can permanently alphabetize its filled master-list entries while preserving trip selections and purchases.
+- Each store’s Data section can permanently alphabetize its filled master-list entries while preserving trip selections, purchases, and quantities.
 - Purchased items remain visible with a line through them unless **Hide purchased** is enabled.
-- **Finish Trip** clears the current trip after confirmation but preserves the reusable master list.
+- **Finish Trip** clears the current trip selections, purchases, and quantities after confirmation but preserves the reusable master list.
 
 ### Spiritual
 
@@ -99,7 +100,7 @@ The saved state currently contains:
 - `tasks`: ten Today task records and five This Month task records.
 - `comingUp`: five dated Today reminders.
 - `comingUpOpen`: the remembered open or closed state of the Coming Up section.
-- `shopping`: three stores, their names and master items, trip selections, purchases, active store, mode, and hide setting.
+- `shopping`: three stores, their names and master items, trip selections, purchases, optional trip-specific quantities, active store, mode, and hide setting.
 - `spiritual`: Daily Text and Daily Bible Reading completion dates, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
 - `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
 
@@ -141,7 +142,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v16
+personal-dashboard-v17
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
