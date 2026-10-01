@@ -142,7 +142,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v17
+personal-dashboard-v18
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
