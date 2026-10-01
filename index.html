@@ -578,6 +578,33 @@
     }
     .shopping-item-text { min-width: 0; line-height: 1.3; }
 
+    .shopping-item-details {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .shopping-quantity-input {
+      width: 68px;
+      min-height: 40px;
+      padding: 6px 8px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--control);
+      color: var(--ink);
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .shopping-quantity {
+      margin-left: .35em;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     .empty-state {
       margin: 0;
       padding: 22px 18px;
@@ -865,7 +892,8 @@
       name: `Store ${index + 1}`,
       items: Array(100).fill(""),
       selected: {},
-      purchased: {}
+      purchased: {},
+      quantities: {}
     });
     const blankDatedEntries = () => Array.from({ length: 2 }, () => ({ done: false, text: "", date: "" }));
     const defaults = {
@@ -934,6 +962,10 @@
             if (!store.items[index]) continue;
             if (candidateStore.selected?.[index]) store.selected[index] = true;
             if (candidateStore.purchased?.[index] && store.selected[index]) store.purchased[index] = true;
+            const quantity = Number(candidateStore.quantities?.[index]);
+            if (store.selected[index] && Number.isInteger(quantity) && quantity >= 1 && quantity <= 99) {
+              store.quantities[index] = quantity;
+            }
           }
           return store;
         });
@@ -1237,7 +1269,8 @@
         .map((text, index) => ({
           text,
           selected: Boolean(store.selected[index]),
-          purchased: Boolean(store.purchased[index])
+          purchased: Boolean(store.purchased[index]),
+          quantity: store.quantities[index]
         }))
         .filter(item => item.text.trim())
         .sort((a, b) => a.text.trim().localeCompare(b.text.trim(), undefined, { sensitivity: "base", numeric: true }));
@@ -1246,9 +1279,13 @@
       while (store.items.length < 100) store.items.push("");
       store.selected = {};
       store.purchased = {};
+      store.quantities = {};
       filled.forEach((item, index) => {
         if (item.selected) store.selected[index] = true;
         if (item.purchased && item.selected) store.purchased[index] = true;
+        if (item.selected && Number.isInteger(item.quantity) && item.quantity >= 1 && item.quantity <= 99) {
+          store.quantities[index] = item.quantity;
+        }
       });
     }
 
@@ -1267,16 +1304,19 @@
       const progress = mode === "prepare" ? `${selected.length} selected` : `${purchasedCount} of ${selected.length}`;
 
       const prepareList = available.length
-        ? `<div class="shopping-list">${available.map(item => `<label class="shopping-item">
+        ? `<div class="shopping-list">${available.map(item => `<div class="shopping-item">
             <input class="check" data-action="shopping-select" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.selected[item.index] ? "checked" : ""} aria-label="Add ${escapeHtml(item.text)} to the ${escapeHtml(name)} trip">
-            <span class="shopping-item-text">${escapeHtml(item.text)}</span>
-          </label>`).join("")}</div>`
+            <div class="shopping-item-details">
+              <span class="shopping-item-text">${escapeHtml(item.text)}</span>
+              ${store.selected[item.index] ? `<input class="shopping-quantity-input" data-action="shopping-quantity" data-store="${activeStore}" data-index="${item.index}" type="number" inputmode="numeric" min="1" max="99" step="1" value="${store.quantities[item.index] ?? ""}" placeholder="Qty" aria-label="Quantity for ${escapeHtml(item.text)}">` : ""}
+            </div>
+          </div>`).join("")}</div>`
         : `<p class="empty-state">No reusable items have been entered for ${escapeHtml(name)} yet. Add them in the Data tab.</p>`;
 
       const shopList = visibleTripItems.length
         ? `<div class="shopping-list">${visibleTripItems.map(item => `<label class="shopping-item${store.purchased[item.index] ? " done" : ""}">
             <input class="check" data-action="shopping-purchased" data-store="${activeStore}" data-index="${item.index}" type="checkbox" ${store.purchased[item.index] ? "checked" : ""} aria-label="Mark ${escapeHtml(item.text)} purchased">
-            <span class="shopping-item-text">${escapeHtml(item.text)}</span>
+            <span class="shopping-item-text">${escapeHtml(item.text)}${store.quantities[item.index] ? `<span class="shopping-quantity">×${store.quantities[item.index]}</span>` : ""}</span>
           </label>`).join("")}</div>`
         : `<p class="empty-state">${selected.length ? "All selected items are purchased." : `No items are selected for ${escapeHtml(name)}. Use Prepare List to choose what you need.`}</p>`;
 
@@ -1584,6 +1624,7 @@
         if (!window.confirm(`Finish the ${name} trip and clear every selected item?`)) return;
         currentStore.selected = {};
         currentStore.purchased = {};
+        currentStore.quantities = {};
         state.shopping.hidePurchased = false;
         save();
         render();
@@ -1704,9 +1745,22 @@
         else {
           delete currentStore.selected[index];
           delete currentStore.purchased[index];
+          delete currentStore.quantities[index];
         }
         save();
         render();
+        return;
+      }
+      if (action === "shopping-quantity") {
+        const currentStore = state.shopping.stores[Number(store)];
+        const quantity = Number(control.value);
+        if (control.value === "" || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+          delete currentStore.quantities[index];
+          if (control.value !== "") control.value = "";
+        } else {
+          currentStore.quantities[index] = quantity;
+        }
+        save();
         return;
       }
       if (action === "shopping-purchased") {
@@ -1774,6 +1828,16 @@
       }
       if (action === "store-name") {
         state.shopping.stores[Number(store)].name = control.value;
+        save();
+      }
+      if (action === "shopping-quantity") {
+        const currentStore = state.shopping.stores[Number(store)];
+        const quantity = Number(control.value);
+        if (control.value === "" || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+          delete currentStore.quantities[index];
+        } else {
+          currentStore.quantities[index] = quantity;
+        }
         save();
       }
       if (action === "shopping-item") {
