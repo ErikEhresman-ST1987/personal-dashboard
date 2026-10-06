@@ -1693,7 +1693,20 @@
       });
     }
 
+    function pruneRollingState() {
+      const normalized = normalizedState(state);
+      const before = JSON.stringify({ dailyHistory: state.spiritual.dailyHistory, plans: state.meals.plans });
+      state.spiritual.dailyHistory = normalized.spiritual.dailyHistory;
+      state.meals.plans = normalized.meals.plans;
+      const after = JSON.stringify({ dailyHistory: state.spiritual.dailyHistory, plans: state.meals.plans });
+      if (before !== after) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+        catch { /* Keep the current in-memory view if storage is temporarily unavailable. */ }
+      }
+    }
+
     function render() {
+      pruneRollingState();
       ensureVisibleActiveTab();
       main.innerHTML = activePanelMarkup();
       updateTabNavigation();
