@@ -40,10 +40,20 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - Purchased items remain visible with a line through them unless **Hide purchased** is enabled.
 - **Finish Trip** clears the current trip selections, purchases, and quantities after confirmation but preserves the reusable master list.
 
+### Meals
+
+- Rolling seven-day view: **Today + the next six days**.
+- Each day has an optional Dinner entry and optional Prep entry.
+- Dinner and Prep accept free text and offer reusable choices maintained in Data.
+- Blank days are valid; there are no completion states, overdue states, or meal-history records.
+- Past meal days fall away automatically as the rolling window advances.
+- No breakfast, lunch, calories, nutrition tracking, recipes, or ingredient system is included.
+
 ### Spiritual
 
 - Daily Text checkbox that resets by comparing its saved completion date with the device's local date.
 - Daily Bible Reading checkbox with the same automatic daily reset behavior.
+- Daily Text and Daily Bible Reading now keep only a rolling 14-day completion record for the Recent Activity view in Data.
 - Collapsible Midweek Meeting preparation:
   - Bible Reading
   - Spiritual Gems
@@ -66,6 +76,8 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - Mobile devices use the share sheet when supported; desktop browsers use a normal download.
 - Restore accepts only a recognized backup format and replaces current data after confirmation.
 - Collapsible source lists for Today and This Month.
+- Collapsible **Meals** data with 15 reusable Dinner choices and 15 reusable Prep choices.
+- Collapsible **Recent Activity** showing Daily Text and Daily Bible Reading completion for the last 14 local dates; older dates are discarded.
 - Collapsible store data with editable store names and reusable shopping items.
 - Collapsible Visible Tabs controls for every functional tab.
 - Data remains permanently visible so hidden tabs can always be restored.
@@ -101,7 +113,8 @@ The saved state currently contains:
 - `comingUp`: five dated Today reminders.
 - `comingUpOpen`: the remembered open or closed state of the Coming Up section.
 - `shopping`: three stores, their names and master items, trip selections, purchases, optional trip-specific quantities, active store, mode, and hide setting.
-- `spiritual`: Daily Text and Daily Bible Reading completion dates, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
+- `spiritual`: Daily Text and Daily Bible Reading completion dates, their rolling 14-day activity history, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
+- `meals`: reusable Dinner and Prep choices plus dated plans retained only for the active Today + 6-day window.
 - `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
 
 `normalizedState()` is the migration boundary. Every new saved field must receive a safe default there, and old or malformed state must be normalized before rendering. Existing unrelated fields must remain compatible.
@@ -142,7 +155,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v18
+personal-dashboard-v19
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
@@ -170,11 +183,14 @@ Automated tests support these checks, but real use on the installed PWA remains 
 ### Implemented and stable
 
 - Spiritual tab and its reset, progress, date, clearing, and remembered-collapse behavior.
+- Shopping trip quantities and their selection, alphabetization, persistence, and Finish Trip behavior.
 - Local JSON Backup and Restore in Data.
 - Per-store shopping-data alphabetization.
 
 ### Implemented and being tested
 
+- Rolling seven-day Meals chalkboard with reusable Dinner and Prep choices.
+- Fourteen-day Recent Activity for Daily Text and Daily Bible Reading.
 - Active-tab-only rendering.
 - Per-device Visible Tabs controls with Data permanently available.
 
