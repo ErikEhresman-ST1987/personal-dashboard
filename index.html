@@ -25,6 +25,7 @@
       --month: #f9eacc;
       --shopping: #f5ddcf;
       --spiritual: #dcebe5;
+      --meals: #e8e0cf;
       --data: #dfe5df;
       --accent: #315f4b;
       --strong: #252923;
@@ -56,7 +57,7 @@
 
     html[data-theme="blue"] {
       --ink: #172c40; --muted: #566c7d; --paper: #fdfefe; --canvas: #edf3f8; --line: #cbd8e3;
-      --today: #cfe2f3; --month: #ede4c7; --shopping: #eadbd4; --spiritual: #d9e8e4; --data: #dfe6eb;
+      --today: #cfe2f3; --month: #ede4c7; --shopping: #eadbd4; --spiritual: #d9e8e4; --meals: #e6dfcf; --data: #dfe6eb;
       --accent: #356b9a; --strong: #172c40; --completed: #e8f0fa; --soft-line: #dce6ee;
       --control-border: #91a9bd; --input-border: #9fb4c5; --button-border: #9eb1c1;
       --button-surface: #eef4f9; --switch-surface: #dce6ef; --accent-soft: #edf5fb;
@@ -66,7 +67,7 @@
 
     html[data-theme="orange"] {
       --ink: #3c291d; --muted: #776354; --paper: #fffdfa; --canvas: #faf6f1; --line: #e4d2c3;
-      --today: #f1dfd0; --month: #f8e7bf; --shopping: #f4d6c7; --spiritual: #e8e2ce; --data: #eee0d6;
+      --today: #f1dfd0; --month: #f8e7bf; --shopping: #f4d6c7; --spiritual: #e8e2ce; --meals: #f1dfc9; --data: #eee0d6;
       --accent: #a85520; --strong: #3c291d; --completed: #f7eadc; --soft-line: #eddfd3;
       --control-border: #bfa48e; --input-border: #c9b19d; --button-border: #c7ad97;
       --button-surface: #fbf0e6; --switch-surface: #f0e2d5; --accent-soft: #fff2e7;
@@ -77,7 +78,7 @@
     html[data-theme="dark"] {
       color-scheme: dark;
       --ink: #edf5f0; --muted: #afc0b6; --paper: #18231e; --canvas: #101713; --line: #3a5144;
-      --today: #24394a; --month: #413923; --shopping: #442e27; --spiritual: #23382f; --data: #2b3630;
+      --today: #24394a; --month: #413923; --shopping: #442e27; --spiritual: #23382f; --meals: #3a3326; --data: #2b3630;
       --accent: #6fc18f; --strong: #6fc18f; --on-strong: #102117; --on-accent: #102117;
       --control: #1d2a24; --completed: #223229; --soft-line: #31443a; --control-border: #668071;
       --input-border: #52695c; --button-border: #566f61; --button-surface: #202e27;
@@ -210,6 +211,7 @@
     .month .section-head { background: var(--month); }
     .shopping .section-head { background: var(--shopping); }
     .spiritual .section-head { background: var(--spiritual); }
+    .meals .section-head { background: var(--meals); }
     .data .section-head { background: var(--data); }
 
     .today-options { margin: -3px 2px 10px; }
@@ -631,6 +633,24 @@
       font-weight: 750;
     }
 
+    .meal-list { display: grid; gap: 10px; }
+    .meal-day { padding: 11px 12px 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .meal-day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 9px; }
+    .meal-day-head strong { font-size: .98rem; }
+    .meal-day-head span { color: var(--muted); font-size: .78rem; font-weight: 650; }
+    .meal-fields { display: grid; gap: 8px; }
+    .meal-field { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 8px; align-items: center; color: var(--muted); font-size: .78rem; font-weight: 750; }
+    .meal-field input { width: 100%; min-height: 44px; padding: 9px 10px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--control); color: var(--ink); font-size: 16px; font-weight: 500; }
+    .activity-data { border-left: 6px solid var(--spiritual); }
+    .meals-data { border-left: 6px solid var(--meals); }
+    .activity-summary { display: grid; gap: 14px; }
+    .activity-row { display: grid; gap: 7px; }
+    .activity-row-head { display: flex; justify-content: space-between; gap: 12px; font-size: .88rem; font-weight: 700; }
+    .activity-row-head span:last-child { color: var(--muted); }
+    .activity-days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
+    .activity-day { aspect-ratio: 1; min-width: 0; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: var(--control); color: var(--muted); font-size: clamp(.52rem, 2.4vw, .68rem); font-weight: 800; }
+    .activity-day.done { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
     .data-groups { display: grid; gap: 16px; }
 
     .data-group {
@@ -868,6 +888,7 @@
       <button class="tab" data-tab="month" aria-selected="false">This Month</button>
       <button class="tab" data-tab="shopping" aria-selected="false">Shopping</button>
       <button class="tab" data-tab="spiritual" aria-selected="false">Spiritual</button>
+      <button class="tab" data-tab="meals" aria-selected="false">Meals</button>
       <button class="tab" data-tab="data" aria-selected="false">Data</button>
     </nav>
 
@@ -889,7 +910,8 @@
       { id: "today", label: "Today" },
       { id: "month", label: "This Month" },
       { id: "shopping", label: "Shopping" },
-      { id: "spiritual", label: "Spiritual" }
+      { id: "spiritual", label: "Spiritual" },
+      { id: "meals", label: "Meals" }
     ];
 
     const blankChoices = () => Array(15).fill("");
@@ -901,6 +923,7 @@
       quantities: {}
     });
     const blankDatedEntries = () => Array.from({ length: 2 }, () => ({ done: false, text: "", date: "" }));
+    const blankMealChoices = () => Array(15).fill("");
     const defaults = {
       theme: "green",
       hideCompletedToday: true,
@@ -923,6 +946,7 @@
       spiritual: {
         dailyTextDate: "",
         dailyBibleReadingDate: "",
+        dailyHistory: { text: [], bibleReading: [] },
         midweekDone: Array(4).fill(false),
         sundaySubheadingCount: 3,
         sundayDone: Array(5).fill(false),
@@ -931,6 +955,7 @@
         customActivities: blankDatedEntries(),
         openGroups: { midweek: true, sunday: false, upcoming: false, custom: false }
       },
+      meals: { dinnerChoices: blankMealChoices(), prepChoices: blankMealChoices(), plans: {} },
       visibleTabs: Object.fromEntries(configurableTabs.map(tab => [tab.id, true]))
     };
 
@@ -1000,6 +1025,19 @@
         if (/^\d{4}-\d{2}-\d{2}$/.test(String(spiritual.dailyBibleReadingDate ?? ""))) {
           fresh.spiritual.dailyBibleReadingDate = String(spiritual.dailyBibleReadingDate);
         }
+        const historyCutoff = dateKeyOffset(-13);
+        const todayKey = localDateKey();
+        for (const sourceKey of ["text", "bibleReading"]) {
+          const source = spiritual.dailyHistory?.[sourceKey];
+          if (Array.isArray(source)) {
+            fresh.spiritual.dailyHistory[sourceKey] = [...new Set(source
+              .map(value => String(value ?? ""))
+              .filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value) && value >= historyCutoff && value <= todayKey))]
+              .sort();
+          }
+        }
+        if (fresh.spiritual.dailyTextDate === todayKey && !fresh.spiritual.dailyHistory.text.includes(todayKey)) fresh.spiritual.dailyHistory.text.push(todayKey);
+        if (fresh.spiritual.dailyBibleReadingDate === todayKey && !fresh.spiritual.dailyHistory.bibleReading.includes(todayKey)) fresh.spiritual.dailyHistory.bibleReading.push(todayKey);
         if (Array.isArray(spiritual.midweekDone)) {
           fresh.spiritual.midweekDone = fresh.spiritual.midweekDone.map((_, index) => Boolean(spiritual.midweekDone[index]));
         }
@@ -1025,6 +1063,24 @@
         if (spiritual.openGroups && typeof spiritual.openGroups === "object") {
           for (const key of Object.keys(fresh.spiritual.openGroups)) {
             fresh.spiritual.openGroups[key] = Boolean(spiritual.openGroups[key]);
+          }
+        }
+      }
+      if (candidate.meals && typeof candidate.meals === "object") {
+        for (const key of ["dinnerChoices", "prepChoices"]) {
+          if (Array.isArray(candidate.meals[key])) {
+            fresh.meals[key] = candidate.meals[key].slice(0, 15).map(value => String(value ?? "").slice(0, 160));
+            while (fresh.meals[key].length < 15) fresh.meals[key].push("");
+          }
+        }
+        if (candidate.meals.plans && typeof candidate.meals.plans === "object") {
+          const firstDate = localDateKey();
+          const lastDate = dateKeyOffset(6);
+          for (const [date, plan] of Object.entries(candidate.meals.plans)) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < firstDate || date > lastDate || !plan || typeof plan !== "object") continue;
+            const dinner = String(plan.dinner ?? "").slice(0, 200);
+            const prep = String(plan.prep ?? "").slice(0, 200);
+            if (dinner || prep) fresh.meals.plans[date] = { dinner, prep };
           }
         }
       }
@@ -1075,6 +1131,11 @@
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function dateKeyOffset(offset, base = new Date()) {
+      const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset);
+      return localDateKey(date);
     }
 
     function setBackupStatus(message, isError = false) {
@@ -1435,6 +1496,55 @@
       </section>`;
     }
 
+    function mealPlanFor(date) {
+      return state.meals.plans[date] || { dinner: "", prep: "" };
+    }
+
+    function mealChoiceListMarkup(id, choices) {
+      return `<datalist id="${id}">${choices.filter(value => value.trim()).map(value => `<option value="${escapeHtml(value)}"></option>`).join("")}</datalist>`;
+    }
+
+    function mealsMarkup() {
+      const days = Array.from({ length: 7 }, (_, offset) => {
+        const date = new Date();
+        date.setHours(12, 0, 0, 0);
+        date.setDate(date.getDate() + offset);
+        const key = localDateKey(date);
+        const plan = mealPlanFor(key);
+        const dayLabel = offset === 0 ? "Today" : new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+        const dateLabel = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+        return `<div class="meal-day">
+          <div class="meal-day-head"><strong>${escapeHtml(dayLabel)}</strong><span>${escapeHtml(dateLabel)}</span></div>
+          <div class="meal-fields">
+            <label class="meal-field"><span>Dinner</span><input data-action="meal-plan" data-date="${key}" data-field="dinner" list="dinnerChoices" value="${escapeHtml(plan.dinner)}" maxlength="200" placeholder="What’s for dinner?"></label>
+            <label class="meal-field"><span>Prep</span><input data-action="meal-plan" data-date="${key}" data-field="prep" list="prepChoices" value="${escapeHtml(plan.prep)}" maxlength="200" placeholder="Optional prep"></label>
+          </div>
+        </div>`;
+      }).join("");
+      return `<section class="panel meals${activeTab === "meals" ? " active" : ""}" data-panel="meals">
+        <div class="section-head"><h2>Meals</h2><span>Today + 6 days</span></div>
+        <p class="helper">A rolling dinner and prep chalkboard. Blank days are fine; past days simply fall away.</p>
+        ${mealChoiceListMarkup("dinnerChoices", state.meals.dinnerChoices)}
+        ${mealChoiceListMarkup("prepChoices", state.meals.prepChoices)}
+        <div class="meal-list">${days}</div>
+      </section>`;
+    }
+
+    function activityDates() {
+      return Array.from({ length: 14 }, (_, index) => dateKeyOffset(index - 13));
+    }
+
+    function activityRowMarkup(label, history) {
+      const dates = activityDates();
+      const completed = dates.filter(date => history.includes(date)).length;
+      const cells = dates.map(date => {
+        const done = history.includes(date);
+        const labelDate = shortDateLabel(date);
+        return `<span class="activity-day${done ? " done" : ""}" title="${escapeHtml(labelDate)}: ${done ? "completed" : "not completed"}" aria-label="${escapeHtml(labelDate)}: ${done ? "completed" : "not completed"}">${done ? "✓" : "·"}</span>`;
+      }).join("");
+      return `<div class="activity-row"><div class="activity-row-head"><span>${escapeHtml(label)}</span><span>${completed} / 14 days</span></div><div class="activity-days" role="img" aria-label="${escapeHtml(label)}, ${completed} of the last 14 days completed">${cells}</div></div>`;
+    }
+
     function updateSpiritualProgress(group) {
       const spiritual = state.spiritual;
       let key = group;
@@ -1459,8 +1569,8 @@
     function dataMarkup() {
       const visibleTabCount = configurableTabs.filter(tab => state.visibleTabs[tab.id]).length;
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
-        <div class="section-head"><h2>Data</h2><span>Lists, stores, and backup</span></div>
-        <p class="helper">Edit these lists to change the choices available in the first three task positions of each section.</p>
+        <div class="section-head"><h2>Data</h2><span>Lists, activity, and backup</span></div>
+        <p class="helper">Maintain reusable choices, review recent daily activity, and manage local dashboard data.</p>
         <div class="data-groups">
           <details class="data-group backup-data">
             <summary><span>Backup &amp; Restore</span><span class="group-progress">Local file</span></summary>
@@ -1485,6 +1595,16 @@
                   <span>${THEME_LABELS[theme]}</span>
                   <span class="theme-selected" aria-hidden="true">✓</span>
                 </button>`).join("")}
+              </div>
+            </div>
+          </details>
+          <details class="data-group activity-data">
+            <summary><span>Recent Activity</span><span class="group-progress">Last 14 days</span></summary>
+            <div class="data-group-content">
+              <p class="helper">A quiet two-week look back at Daily Text and Daily Bible Reading. Older dates are not retained.</p>
+              <div class="activity-summary">
+                ${activityRowMarkup("Daily Text", state.spiritual.dailyHistory.text)}
+                ${activityRowMarkup("Daily Bible Reading", state.spiritual.dailyHistory.bibleReading)}
               </div>
             </div>
           </details>
@@ -1514,6 +1634,16 @@
               </div>
             </details>`;
           }).join("")}
+          <details class="data-group meals-data">
+            <summary><span>Meals</span><span class="group-progress">${state.meals.dinnerChoices.filter(value => value.trim()).length + state.meals.prepChoices.filter(value => value.trim()).length} choices</span></summary>
+            <div class="data-group-content">
+              <p class="helper">Reusable choices save typing but never restrict the Meals tab. You can always type a one-off dinner or prep note directly.</p>
+              <h3>Dinner Choices</h3>
+              <div class="choice-list">${state.meals.dinnerChoices.map((value, index) => `<div class="choice-row"><label for="meal-dinner-${index}">${index + 1}</label><input id="meal-dinner-${index}" data-action="meal-choice" data-list="dinnerChoices" data-index="${index}" value="${escapeHtml(value)}" maxlength="160" placeholder="Reusable dinner"></div>`).join("")}</div>
+              <h3>Prep Choices</h3>
+              <div class="choice-list">${state.meals.prepChoices.map((value, index) => `<div class="choice-row"><label for="meal-prep-${index}">${index + 1}</label><input id="meal-prep-${index}" data-action="meal-choice" data-list="prepChoices" data-index="${index}" value="${escapeHtml(value)}" maxlength="160" placeholder="Reusable prep"></div>`).join("")}</div>
+            </div>
+          </details>
           <h3 class="shopping-data-heading">Shopping Stores</h3>
           <p class="helper">Rename each store and maintain up to 100 reusable items. Blank positions stay out of the Shopping tab.</p>
           ${state.shopping.stores.map((store, storeIndex) => {
@@ -1552,6 +1682,7 @@
       if (section) return sectionMarkup(section);
       if (activeTab === "shopping") return shoppingMarkup();
       if (activeTab === "spiritual") return spiritualMarkup();
+      if (activeTab === "meals") return mealsMarkup();
       return dataMarkup();
     }
 
@@ -1695,8 +1826,12 @@
         return;
       }
       if (action === "spiritual-daily") {
-        if (daily === "bible-reading") state.spiritual.dailyBibleReadingDate = control.checked ? localDateKey() : "";
-        else state.spiritual.dailyTextDate = control.checked ? localDateKey() : "";
+        const today = localDateKey();
+        const historyKey = daily === "bible-reading" ? "bibleReading" : "text";
+        if (daily === "bible-reading") state.spiritual.dailyBibleReadingDate = control.checked ? today : "";
+        else state.spiritual.dailyTextDate = control.checked ? today : "";
+        state.spiritual.dailyHistory[historyKey] = state.spiritual.dailyHistory[historyKey].filter(date => date !== today);
+        if (control.checked) state.spiritual.dailyHistory[historyKey].push(today);
         save();
         control.closest(".daily-text").classList.toggle("done", control.checked);
         return;
@@ -1822,7 +1957,7 @@
 
     main.addEventListener("input", event => {
       const control = event.target;
-      const { action, section, index, store, list } = control.dataset;
+      const { action, section, index, store, list, date, field } = control.dataset;
       if (action === "task-value" && control.tagName === "INPUT") {
         state.tasks[section][index].value = control.value;
         save();
@@ -1863,12 +1998,23 @@
         state.spiritual[list][index].text = control.value;
         save();
       }
+      if (action === "meal-choice") {
+        state.meals[list][index] = control.value;
+        save();
+      }
+      if (action === "meal-plan") {
+        const plan = mealPlanFor(date);
+        plan[field] = control.value;
+        if (plan.dinner || plan.prep) state.meals.plans[date] = plan;
+        else delete state.meals.plans[date];
+        save();
+      }
     });
 
     render();
 
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && activeTab === "spiritual") render();
+      if (document.visibilityState === "visible" && (activeTab === "spiritual" || activeTab === "meals")) render();
     });
 
     if ("serviceWorker" in navigator) {
