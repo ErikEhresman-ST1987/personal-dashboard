@@ -1245,7 +1245,7 @@
     function taskMarkup(section, task, index) {
       const id = section.id;
       const day = section.days?.[index];
-      const field = task.kind === "select"
+      const field = id !== "today" && task.kind === "select"
         ? `<select class="task-control" data-action="task-value" data-section="${id}" data-index="${index}" aria-label="${section.title} task ${index + 1}">
             <option value="">Choose a task…</option>
             ${selectOptions(state.choices[id], task.value)}
