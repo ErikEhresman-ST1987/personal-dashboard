@@ -1,4 +1,4 @@
-const CACHE_NAME = "personal-dashboard-v19";
+const CACHE_NAME = "personal-dashboard-v20";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", event => {
