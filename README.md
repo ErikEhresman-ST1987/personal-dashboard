@@ -17,7 +17,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 
 ### Today
 
-- Ten task positions: three reusable dropdown choices and seven manual entries.
+- Ten free-text task positions. Existing saved Today task values remain intact when upgrading.
 - **Hide completed** is on by default for the main Today list. Completed rows briefly show their checkmark and then close; turning the switch off reveals them in their original slots for review or unchecking.
 - Five dated **Coming Up** entries in a collapsible section beneath the main task list.
 - The Coming Up heading shows the number of active items and the nearest relevant date while collapsed.
@@ -155,7 +155,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v19
+personal-dashboard-v20
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
