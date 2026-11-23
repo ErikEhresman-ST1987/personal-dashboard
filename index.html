@@ -1653,7 +1653,7 @@
           <p class="helper">Rename each of six stores, choose whether to show it in Shopping, and maintain up to 100 reusable items. Hiding a store preserves its data.</p>
           ${state.shopping.stores.map((store, storeIndex) => {
             const itemCount = storeItems(store).length;
-            return `<details class="store-data-group"${storeIndex === 0 ? " open" : ""}>
+            return `<details class="store-data-group">
               <summary><span>${escapeHtml(storeDisplayName(store, storeIndex))}</span><span class="group-progress">${itemCount} items</span></summary>
               <div class="store-data-content">
                 <label class="visibility-row"><input type="checkbox" data-action="store-visibility" data-store="${storeIndex}" ${store.visible ? "checked" : ""}> <span>Show in Shopping</span></label>
