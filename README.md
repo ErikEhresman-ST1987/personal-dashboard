@@ -24,10 +24,11 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - The Coming Up open or closed state is remembered.
 - Coming Up items remain visible with a line through them when completed.
 
-### This Month
+### Congregation
 
-- Five task positions.
-- Three reusable dropdown choices and two manual entries.
+- Fifteen free-text task positions, each with three optional collapsible free-text subtasks.
+- All completion checkboxes are independent. Hide Completed applies to main tasks only.
+- Existing Monthly task values and completion states are retained; no automatic reset.
 
 ### Shopping
 
@@ -75,7 +76,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 - A dated JSON backup contains the complete dashboard state.
 - Mobile devices use the share sheet when supported; desktop browsers use a normal download.
 - Restore accepts only a recognized backup format and replaces current data after confirmation.
-- Collapsible source lists for Today and This Month.
+- Legacy Today source list.
 - Collapsible **Meals** data with 15 reusable Dinner choices and 15 reusable Prep choices.
 - Collapsible **Recent Activity** showing Daily Text and Daily Bible Reading completion for the last 14 local dates; older dates are discarded.
 - Collapsible store data with editable store names and reusable shopping items.
@@ -108,8 +109,8 @@ The saved state currently contains:
 
 - `theme`: the selected Green, Blue, Orange, or Dark appearance palette.
 - `hideCompletedToday`: the main Today list's saved Hide completed preference (defaults to on for older saves).
-- `choices`: 15 reusable choices for Today and This Month.
-- `tasks`: ten Today task records and five This Month task records.
+- `choices`: Legacy reusable choices retained for compatibility.
+- `tasks`: ten Today tasks and fifteen Congregation tasks (stored under the existing month key), each Congregation task with three subtasks.
 - `comingUp`: five dated Today reminders.
 - `comingUpOpen`: the remembered open or closed state of the Coming Up section.
 - `shopping`: six stores, their visibility, names and master items, trip selections, purchases, optional trip-specific quantities, active store, mode, and hide setting.
@@ -155,7 +156,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v22
+personal-dashboard-v23
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
