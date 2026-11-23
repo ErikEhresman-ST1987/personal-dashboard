@@ -156,7 +156,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v23
+personal-dashboard-v25
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
@@ -212,3 +212,7 @@ Automated tests support these checks, but real use on the installed PWA remains 
 - A fitness, goals, or habits tracker.
 
 Future ideas are not approved scope merely because they appear here. Continue to use real-world friction to select and approve one isolated update at a time.
+
+### Navigation order
+
+Use Data → Visible Tabs to reorder functional tabs with up/down arrows. Hidden tabs retain their positions; Data stays last. Order is saved locally and included in backups.
