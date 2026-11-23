@@ -245,6 +245,11 @@
       overflow: hidden;
     }
 
+    .congregation-subtasks summary { cursor:pointer; min-height:44px; line-height:44px; color:var(--muted); font-size:.85rem; }
+    .congregation-subtask { display:grid; grid-template-columns:32px minmax(0,1fr); align-items:center; gap:8px; margin-top:6px; }
+    .congregation-subtask input:checked + input { text-decoration:line-through; }
+    .month .task.done .congregation-subtask input[type=text] { text-decoration:none; }
+    .month .task.done .congregation-subtask input:checked + input { text-decoration:line-through; }
     .coming-up {
       margin-top: 20px;
       padding-top: 17px;
@@ -885,7 +890,7 @@
 
     <nav aria-label="Dashboard sections">
       <button class="tab" data-tab="today" aria-selected="true">Today</button>
-      <button class="tab" data-tab="month" aria-selected="false">This Month</button>
+      <button class="tab" data-tab="month" aria-selected="false">Congregation</button>
       <button class="tab" data-tab="shopping" aria-selected="false">Shopping</button>
       <button class="tab" data-tab="spiritual" aria-selected="false">Spiritual</button>
       <button class="tab" data-tab="meals" aria-selected="false">Meals</button>
@@ -904,11 +909,11 @@
     const THEME_COLORS = { green: "#f6f3ec", blue: "#356b9a", orange: "#984b1b", dark: "#101713" };
     const sections = [
       { id: "today", title: "Today", className: "today", note: "10 items" },
-      { id: "month", title: "This Month", className: "month", note: "5 items" }
+      { id: "month", title: "Congregation", className: "month", note: "15 items" }
     ];
     const configurableTabs = [
       { id: "today", label: "Today" },
-      { id: "month", label: "This Month" },
+      { id: "month", label: "Congregation" },
       { id: "shopping", label: "Shopping" },
       { id: "spiritual", label: "Spiritual" },
       { id: "meals", label: "Meals" }
@@ -928,13 +933,14 @@
     const defaults = {
       theme: "green",
       hideCompletedToday: true,
+      hideCompletedCongregation: true,
       choices: {
         today: blankChoices(),
         month: blankChoices()
       },
       tasks: {
         today: Array.from({ length: 10 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" })),
-        month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
+        month: Array.from({ length: 15 }, () => ({ done: false, kind: "text", value: "", subtasks: Array.from({length: 3}, () => ({done: false, value: ""})) }))
       },
       shopping: {
         stores: Array.from({ length: 6 }, (_, index) => blankStore(index)),
@@ -965,6 +971,7 @@
       if (!candidate || typeof candidate !== "object") return fresh;
       if (VALID_THEMES.includes(candidate.theme)) fresh.theme = candidate.theme;
       if (typeof candidate.hideCompletedToday === "boolean") fresh.hideCompletedToday = candidate.hideCompletedToday;
+      if (typeof candidate.hideCompletedCongregation === "boolean") fresh.hideCompletedCongregation = candidate.hideCompletedCongregation;
       for (const section of sections) {
         const id = section.id;
         if (Array.isArray(candidate.choices?.[id])) {
@@ -974,7 +981,7 @@
         if (Array.isArray(candidate.tasks?.[id])) {
           fresh.tasks[id] = fresh.tasks[id].map((fallback, index) => {
             const task = candidate.tasks[id][index];
-            return task ? { ...fallback, done: Boolean(task.done), value: String(task.value ?? "") } : fallback;
+            return task ? { ...fallback, done: Boolean(task.done), value: String(task.value ?? ""), ...(id === "month" ? {subtasks: fallback.subtasks.map((sub, j) => ({done: Boolean(task.subtasks?.[j]?.done), value: String(task.subtasks?.[j]?.value ?? "")}))} : {}) } : fallback;
           });
         }
       }
@@ -1248,7 +1255,7 @@
     function taskMarkup(section, task, index) {
       const id = section.id;
       const day = section.days?.[index];
-      const field = id !== "today" && task.kind === "select"
+      const field = id !== "today" && id !== "month" && task.kind === "select"
         ? `<select class="task-control" data-action="task-value" data-section="${id}" data-index="${index}" aria-label="${section.title} task ${index + 1}">
             <option value="">Choose a task…</option>
             ${selectOptions(state.choices[id], task.value)}
@@ -1260,6 +1267,7 @@
         <div class="task-body">
           ${day ? `<span class="day-label">${day}</span>` : ""}
           ${field}
+          ${id === "month" ? `<details class="congregation-subtasks"><summary>Subtasks</summary>${task.subtasks.map((sub, j) => `<label class="congregation-subtask"><input class="check" type="checkbox" data-action="subtask-done" data-index="${index}" data-sub="${j}" ${sub.done ? "checked" : ""} aria-label="Complete subtask ${j+1} of task ${index+1}"><input class="task-control" type="text" data-action="subtask-value" data-index="${index}" data-sub="${j}" value="${escapeHtml(sub.value)}" placeholder="Optional subtask ${j+1}" aria-label="Subtask ${j+1} of task ${index+1}"></label>`).join("")}</details>` : ""}
         </div>
       </div>`;
     }
@@ -1310,14 +1318,14 @@
     function sectionMarkup(section) {
       const tasks = state.tasks[section.id];
       const visibleTasks = tasks.map((task, index) => ({ task, index }))
-        .filter(({ task }) => section.id !== "today" || !state.hideCompletedToday || !task.done);
+        .filter(({ task }) => !(section.id === "today" ? state.hideCompletedToday : state.hideCompletedCongregation) || !task.done);
       return `<section class="panel ${section.className}${activeTab === section.id ? " active" : ""}" data-panel="${section.id}">
         <div class="section-head"><h2>${section.title}</h2><span>${section.note}</span></div>
-        ${section.id === "today" ? `<div class="today-options">
-          <label class="toggle-control"><input data-action="today-hide-completed" type="checkbox" ${state.hideCompletedToday ? "checked" : ""}>Hide completed</label>
-        </div>` : ""}
+        ${`<div class="today-options">
+          <label class="toggle-control"><input data-action="${section.id === "today" ? "today-hide-completed" : "congregation-hide-completed"}" type="checkbox" ${(section.id === "today" ? state.hideCompletedToday : state.hideCompletedCongregation) ? "checked" : ""}>Hide completed</label>
+        </div>`}
         <div class="task-list">${visibleTasks.map(({ task, index }) => taskMarkup(section, task, index)).join("")
-          || (section.id === "today" ? `<p class="empty-state">All Today tasks are complete. Turn off Hide completed to review them.</p>` : "")}</div>
+          || `<p class="empty-state">All tasks are complete. Turn off Hide completed to review them.</p>`}</div>
         ${section.id === "today" ? comingUpMarkup() : ""}
       </section>`;
     }
@@ -1625,7 +1633,7 @@
               </div>
             </div>
           </details>
-          ${sections.map(section => {
+          ${sections.filter(section => section.id !== "month").map(section => {
             const choiceCount = state.choices[section.id].filter(value => value.trim()).length;
             return `<details class="data-group ${section.id}-data">
               <summary><span>${section.title}</span><span class="group-progress">${choiceCount} choices</span></summary>
@@ -1952,6 +1960,12 @@
         render();
         return;
       }
+      if (action === "subtask-done" || action === "subtask-value") {
+        const sub = state.tasks.month[index].subtasks[Number(control.dataset.sub)];
+        if (action === "subtask-done") sub.done = control.checked; else sub.value = control.value;
+        save(); return;
+      }
+      if (action === "congregation-hide-completed") { state.hideCompletedCongregation = control.checked; save(); render(); return; }
       if (action === "today-hide-completed") {
         state.hideCompletedToday = control.checked;
         save();
@@ -1963,6 +1977,7 @@
         save();
         const row = control.closest(".task");
         row.classList.toggle("done", control.checked);
+        if (section === "month" && state.hideCompletedCongregation && control.checked) { render(); return; }
         if (section === "today" && state.hideCompletedToday && control.checked) {
           if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) row.remove();
           else {
@@ -1983,6 +1998,7 @@
     main.addEventListener("input", event => {
       const control = event.target;
       const { action, section, index, store, list, date, field } = control.dataset;
+      if (action === "subtask-value") { state.tasks.month[index].subtasks[Number(control.dataset.sub)].value = control.value; save(); }
       if (action === "task-value" && control.tagName === "INPUT") {
         state.tasks[section][index].value = control.value;
         save();
