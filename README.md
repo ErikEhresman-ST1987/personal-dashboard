@@ -108,6 +108,8 @@ The storage key is the data namespace, not the release number. Do not rename it 
 The saved state currently contains:
 
 - `theme`: the selected Green, Blue, Orange, or Dark appearance palette.
+- `tabOrder`: ordered functional tab IDs, normalized to remove duplicates and unknown IDs and append missing IDs.
+- `hideCompletedCongregation`: independent main-task visibility preference.
 - `hideCompletedToday`: the main Today list's saved Hide completed preference (defaults to on for older saves).
 - `choices`: Legacy reusable choices retained for compatibility.
 - `tasks`: ten Today tasks and fifteen Congregation tasks (stored under the existing month key), each Congregation task with three subtasks.
@@ -181,14 +183,14 @@ Automated tests support these checks, but real use on the installed PWA remains 
 
 ## Current status and possible next steps
 
-### Implemented and stable
+### Previously documented as stable (historical test records incomplete)
 
 - Spiritual tab and its reset, progress, date, clearing, and remembered-collapse behavior.
 - Shopping trip quantities and their selection, alphabetization, persistence, and Finish Trip behavior.
 - Local JSON Backup and Restore in Data.
 - Per-store shopping-data alphabetization.
 
-### Implemented and being tested
+### Implemented; feature-specific verification incomplete
 
 - Rolling seven-day Meals chalkboard with reusable Dinner and Prep choices.
 - Fourteen-day Recent Activity for Daily Text and Daily Bible Reading.
@@ -216,3 +218,45 @@ Future ideas are not approved scope merely because they appear here. Continue to
 ### Navigation order
 
 Use Data → Visible Tabs to reorder functional tabs with up/down arrows. Hidden tabs retain their positions; Data stays last. Order is saved locally and included in backups.
+
+
+## Development record through cache v25
+
+### Purpose and operator workflow
+
+This is a personal organizer, not a general-purpose commercial productivity platform. The operator uses it to organize everyday tasks, shopping, meal preparation, spiritual activities and congregation responsibilities. The design separates operational work from setup: reusable lists and visibility controls belong in Data, while everyday interactions belong in functional tabs. Real use determines whether features earn their place. Preserve local ownership and existing data, prefer small reversible improvements, and avoid extra controls that do not remove an identified friction point.
+
+### Observed development history
+
+The following record is based on the accessible conversation and current repository contents. Earlier release-by-release history, original creation date, and a complete historical test log are unknown. Version numbers below are PWA cache versions, not backup format versions.
+
+| Cache | Change and reason | Technique and evidence |
+| --- | --- | --- |
+| v18 | Shopping trip-specific quantities; retain reusable item lists. | Optional quantities indexed by master-item position, separate from the master list; user previously reported successful use. Exact earlier implementation history is incomplete. |
+| v19 | Replace the dinner/prep chalkboard with a rolling seven-day view; add recent daily spiritual activity. | Local-date keys, reusable choices plus free entry, rolling completion history. Implemented; feature-specific device verification is unknown. |
+| v20 | Today dropdowns were not useful because most tasks are unique. | Render all ten slots as text inputs without changing existing task values or checkbox state. User subsequently reported the app was working great; individual regression checks are unknown. |
+| v21 | Need three additional stores without cluttering shopping navigation. | Expand normalization defaults to six stores; preserve indices and existing trip data. Per-store visibility defaults to true for the original three, false for the new three. If the active store is hidden, select the first visible store; if none are visible, show instructions. User responded positively; exhaustive visibility/backup tests are unknown. |
+| v22 | First store editor opened with 100 entries, forcing unnecessary scrolling. | Remove its conditional open attribute; all six store editors start collapsed. User responded positively. |
+| v23 | Monthly tab was unused; replace with Congregation responsibilities. | Retain internal month key and existing task records, expand to fifteen text tasks with three nested optional text subtasks each. Each checkbox is independent. Separate Hide Completed preference; native collapsible subtask sections; remove obsolete Monthly choice editor from Data. User confirmed the feature worked but reported overlapping third subtask. |
+| v24 | Third Congregation subtask appeared behind the next main task. | Identified inherited 200px maximum height on shared task cards. Override it only for Congregation; align main checkbox near top so it remains beside main task when expanded. Fix committed; explicit post-fix visual confirmation is unknown. |
+| v25 | Operator requested configurable primary navigation order. | Add normalized tabOrder array, move buttons in Data, reorder existing navigation nodes without recreating the panel, preserve hidden tab positions, keep Data last. User explicitly stated testing had not yet occurred. |
+
+### Reusable techniques and lessons
+
+- Prefer stable internal data identifiers over renaming persisted keys when changing visible labels. Congregation reuses the month key to preserve existing records.
+- Expand fixed-capacity lists through defaults and normalization, not by clearing existing arrays. Nested subtasks are normalized individually and missing entries receive blank defaults.
+- Keep visibility separate from stored content. Hiding a store or tab does not delete its data. Preserve hidden tab positions when reordering.
+- Distinguish independent completion controls from parent-child automation. The operator explicitly chose independent main and subtask checkboxes.
+- Use native details/summary elements for optional content and large setup lists. Collapse by default where scanning is more important than immediate access to all fields.
+- When extending a shared UI pattern, inspect inherited constraints. The Congregation overlap was caused by the Today card maximum height; the targeted override avoids changing Today behavior.
+- Use tap-friendly arrows instead of drag-and-drop for a short navigation list. The choice of arrows and keeping Data last were assistant design decisions accepted in the conversation, not original explicit requirements.
+- Persist text while typing without reconstructing the active panel. Reconstruct only when needed, and update navigation or configuration fragments independently where practical.
+- Separate cache version, storage namespace, and backup format. Publish the cache change last, and never rename the storage namespace for a UI release.
+
+### Verification boundaries and known limitations
+
+Current source and service-worker cache v25 were inspected for this documentation. Repository writes are not proof of GitHub Pages deployment, browser execution, successful migration on a real installation, or offline operation. The accessible record does not establish a completed automated syntax or regression suite for these releases; an earlier syntax-check attempt could not be completed. Do not label these tests as passed without new evidence.
+
+Recent Activity records completion dates, not a historical observation of every missed day. Dates before the feature started cannot be reconstructed from older saves; an empty completion indicator is not proof of a missed activity. The native Meals datalist interface may vary by browser; consistent iOS selection behavior has not been established in the accessible record. The rolling Meals window currently discards plans outside the active date range; behavior after device-clock changes or restoring a differently dated backup has not been verified.
+
+The original three stores, Monthly migration, independent subtask states, hidden tab/store data preservation, v24 layout fix, v25 tab ordering, backup round trips and offline reopening should be included in future regression checks. The next meaningful verification is normal use of v25 on the installed PWA, especially reorder/hide/reveal, reopening, and backup/restore. No new application behavior is authorized by this documentation.
