@@ -917,6 +917,7 @@
     const blankChoices = () => Array(15).fill("");
     const blankStore = index => ({
       name: `Store ${index + 1}`,
+      visible: index < 3,
       items: Array(100).fill(""),
       selected: {},
       purchased: {},
@@ -936,7 +937,7 @@
         month: Array.from({ length: 5 }, (_, i) => ({ done: false, kind: i < 3 ? "select" : "text", value: "" }))
       },
       shopping: {
-        stores: Array.from({ length: 3 }, (_, index) => blankStore(index)),
+        stores: Array.from({ length: 6 }, (_, index) => blankStore(index)),
         activeStore: 0,
         mode: "prepare",
         hidePurchased: false
@@ -983,6 +984,7 @@
           const candidateStore = candidateStores[storeIndex];
           if (!candidateStore || typeof candidateStore !== "object") return fallback;
           const store = blankStore(storeIndex);
+          if (typeof candidateStore.visible === "boolean") store.visible = candidateStore.visible;
           store.name = String(candidateStore.name ?? fallback.name).slice(0, 60);
           if (Array.isArray(candidateStore.items)) {
             store.items = candidateStore.items.slice(0, 100).map(value => String(value ?? "").slice(0, 160));
@@ -1000,7 +1002,8 @@
           return store;
         });
         const activeStore = Number(candidate.shopping.activeStore);
-        if (Number.isInteger(activeStore) && activeStore >= 0 && activeStore < 3) fresh.shopping.activeStore = activeStore;
+        if (Number.isInteger(activeStore) && activeStore >= 0 && activeStore < fresh.shopping.stores.length) fresh.shopping.activeStore = activeStore;
+        if (!fresh.shopping.stores[fresh.shopping.activeStore].visible) fresh.shopping.activeStore = Math.max(0, fresh.shopping.stores.findIndex(store => store.visible));
         if (candidate.shopping.mode === "shop") fresh.shopping.mode = "shop";
         fresh.shopping.hidePurchased = Boolean(candidate.shopping.hidePurchased);
       }
@@ -1361,6 +1364,7 @@
 
     function shoppingMarkup() {
       const { stores, activeStore, mode, hidePurchased } = state.shopping;
+      if (!stores.some(store => store.visible)) return `<section class="panel shopping active" data-panel="shopping"><div class="section-head"><h2>Shopping</h2></div><p class="empty-state">No stores are visible. Show a store in Data → Shopping Stores.</p></section>`;
       const store = stores[activeStore];
       const name = storeDisplayName(store, activeStore);
       const available = storeItems(store);
@@ -1391,6 +1395,7 @@
         <div class="shopping-toolbar">
           <div class="store-tabs" aria-label="Stores">
             ${stores.map((item, index) => {
+              if (!item.visible) return "";
               const count = selectedStoreItems(item).length;
               return `<button class="store-button" data-action="shopping-store" data-store="${index}" aria-pressed="${index === activeStore}">${escapeHtml(storeDisplayName(item, index))}${count ? ` (${count})` : ""}</button>`;
             }).join("")}
@@ -1645,12 +1650,13 @@
             </div>
           </details>
           <h3 class="shopping-data-heading">Shopping Stores</h3>
-          <p class="helper">Rename each store and maintain up to 100 reusable items. Blank positions stay out of the Shopping tab.</p>
+          <p class="helper">Rename each of six stores, choose whether to show it in Shopping, and maintain up to 100 reusable items. Hiding a store preserves its data.</p>
           ${state.shopping.stores.map((store, storeIndex) => {
             const itemCount = storeItems(store).length;
             return `<details class="store-data-group"${storeIndex === 0 ? " open" : ""}>
               <summary><span>${escapeHtml(storeDisplayName(store, storeIndex))}</span><span class="group-progress">${itemCount} items</span></summary>
               <div class="store-data-content">
+                <label class="visibility-row"><input type="checkbox" data-action="store-visibility" data-store="${storeIndex}" ${store.visible ? "checked" : ""}> <span>Show in Shopping</span></label>
                 <label class="store-name-label">Store name
                   <input data-action="store-name" data-store="${storeIndex}" value="${escapeHtml(store.name)}" maxlength="60" placeholder="Store ${storeIndex + 1}">
                 </label>
@@ -1825,6 +1831,12 @@
         const file = control.files?.[0];
         await restoreBackup(file);
         control.value = "";
+        return;
+      }
+      if (action === "store-visibility") {
+        state.shopping.stores[Number(store)].visible = control.checked;
+        if (!state.shopping.stores[state.shopping.activeStore].visible) state.shopping.activeStore = Math.max(0, state.shopping.stores.findIndex(item => item.visible));
+        save();
         return;
       }
       if (action === "tab-visibility") {
