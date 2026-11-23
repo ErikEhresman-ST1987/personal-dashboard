@@ -31,7 +31,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 
 ### Shopping
 
-- Three editable stores with up to 100 reusable items per store.
+- Six editable stores with up to 100 reusable items per store. Each store can be shown or hidden through Data; the three new stores are hidden by default.
 - **Prepare List** mode selects items for a trip and can optionally assign a trip-specific whole-number quantity from 1–99.
 - Quantity stays visually absent when it is not needed; selected items with a quantity show that quantity in **Shop** mode.
 - **Shop** mode shows only selected items.
@@ -112,7 +112,7 @@ The saved state currently contains:
 - `tasks`: ten Today task records and five This Month task records.
 - `comingUp`: five dated Today reminders.
 - `comingUpOpen`: the remembered open or closed state of the Coming Up section.
-- `shopping`: three stores, their names and master items, trip selections, purchases, optional trip-specific quantities, active store, mode, and hide setting.
+- `shopping`: six stores, their visibility, names and master items, trip selections, purchases, optional trip-specific quantities, active store, mode, and hide setting.
 - `spiritual`: Daily Text and Daily Bible Reading completion dates, their rolling 14-day activity history, Midweek and Sunday progress, Sunday subheading count, dated manual entries, and collapsible-group state.
 - `meals`: reusable Dinner and Prep choices plus dated plans retained only for the active Today + 6-day window.
 - `visibleTabs`: local visibility choices for every functional navigation tab; Data is excluded and always available.
@@ -155,7 +155,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v20
+personal-dashboard-v21
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
