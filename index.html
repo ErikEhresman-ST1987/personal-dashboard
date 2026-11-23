@@ -731,6 +731,9 @@
     .visibility-data { border-left: 6px solid var(--accent); }
     .visibility-list { display: grid; gap: 7px; }
 
+    .tab-order-row { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; gap:6px; align-items:center; }
+    .tab-order-row button { min-height:44px; border:1px solid var(--control-border); border-radius:10px; background:var(--control); color:var(--ink); font-size:20px; }
+    .tab-order-row button:disabled { opacity:.35; }
     .visibility-row {
       display: grid;
       grid-template-columns: 34px minmax(0, 1fr);
@@ -965,6 +968,7 @@
         openGroups: { midweek: true, sunday: false, upcoming: false, custom: false }
       },
       meals: { dinnerChoices: blankMealChoices(), prepChoices: blankMealChoices(), plans: {} },
+      tabOrder: configurableTabs.map(tab => tab.id),
       visibleTabs: Object.fromEntries(configurableTabs.map(tab => [tab.id, true]))
     };
 
@@ -1096,6 +1100,7 @@
           }
         }
       }
+      if (Array.isArray(candidate.tabOrder)) fresh.tabOrder = [...new Set([...candidate.tabOrder.filter(id => fresh.tabOrder.includes(id)), ...fresh.tabOrder])];
       if (candidate.visibleTabs && typeof candidate.visibleTabs === "object") {
         for (const tab of configurableTabs) {
           if (typeof candidate.visibleTabs[tab.id] === "boolean") {
@@ -1581,6 +1586,9 @@
       if (progress) progress.textContent = `${completed} of ${total}`;
     }
 
+    function tabOrderMarkup() {
+      return state.tabOrder.map((id, index) => { const tab = configurableTabs.find(item => item.id === id); return `<div class="tab-order-row"><label class="visibility-row"><input data-action="tab-visibility" data-tab="${id}" type="checkbox" ${state.visibleTabs[id] ? "checked" : ""}><span>${tab.label}</span></label><button type="button" data-action="tab-move" data-tab="${id}" data-direction="-1" ${index === 0 ? "disabled" : ""} aria-label="Move ${tab.label} up">↑</button><button type="button" data-action="tab-move" data-tab="${id}" data-direction="1" ${index === state.tabOrder.length-1 ? "disabled" : ""} aria-label="Move ${tab.label} down">↓</button></div>`; }).join("");
+    }
     function dataMarkup() {
       const visibleTabCount = configurableTabs.filter(tab => state.visibleTabs[tab.id]).length;
       return `<section class="panel data${activeTab === "data" ? " active" : ""}" data-panel="data">
@@ -1626,12 +1634,9 @@
           <details class="data-group visibility-data">
             <summary><span>Visible Tabs</span><span class="group-progress" id="visibilityProgress">${visibleTabCount} of ${configurableTabs.length}</span></summary>
             <div class="data-group-content">
-              <p class="helper">Choose which functional tabs appear in the navigation bar. Hidden tabs keep all their saved data. Data always remains available.</p>
-              <div class="visibility-list">
-                ${configurableTabs.map(tab => `<label class="visibility-row">
-                  <input data-action="tab-visibility" data-tab="${tab.id}" type="checkbox" ${state.visibleTabs[tab.id] ? "checked" : ""}>
-                  <span>${tab.label}</span>
-                </label>`).join("")}
+              <p class="helper">Choose which functional tabs appear in the navigation bar. Hidden tabs keep all their saved data. Use the arrows to change their order. Data always remains available at the end.</p>
+              <div class="visibility-list" id="tabOrderList">
+                ${tabOrderMarkup()}
               </div>
             </div>
           </details>
@@ -1690,7 +1695,7 @@
 
     function ensureVisibleActiveTab() {
       if (tabIsVisible(activeTab)) return;
-      activeTab = configurableTabs.find(tab => state.visibleTabs[tab.id])?.id || "data";
+      activeTab = state.tabOrder.find(id => state.visibleTabs[id]) || "data";
     }
 
     function activePanelMarkup() {
@@ -1703,6 +1708,8 @@
     }
 
     function updateTabNavigation() {
+      const nav = document.querySelector("nav");
+      for (const id of [...state.tabOrder, "data"]) { const button = nav.querySelector(`[data-tab="${id}"]`); if (button) nav.appendChild(button); }
       document.querySelectorAll(".tab").forEach(button => {
         button.hidden = !tabIsVisible(button.dataset.tab);
         button.setAttribute("aria-selected", String(button.dataset.tab === activeTab));
@@ -1741,6 +1748,12 @@
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       const { action, store, mode, theme } = button.dataset;
+      if (action === "tab-move") {
+        const index = state.tabOrder.indexOf(button.dataset.tab), next = index + Number(button.dataset.direction);
+        if (index < 0 || next < 0 || next >= state.tabOrder.length) return;
+        [state.tabOrder[index], state.tabOrder[next]] = [state.tabOrder[next], state.tabOrder[index]];
+        save(); updateTabNavigation(); document.getElementById("tabOrderList").innerHTML = tabOrderMarkup(); return;
+      }
       if (action === "backup-export") {
         await exportBackup();
         return;
