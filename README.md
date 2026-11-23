@@ -31,7 +31,7 @@ A calm, mobile-first personal organizer built with plain HTML, CSS, and JavaScri
 
 ### Shopping
 
-- Six editable stores with up to 100 reusable items per store. Each store can be shown or hidden through Data; the three new stores are hidden by default.
+- Six editable stores with up to 100 reusable items per store. Each store can be shown or hidden through Data; the three new stores are hidden by default. All six store editor sections start collapsed when Data opens.
 - **Prepare List** mode selects items for a trip and can optionally assign a trip-specific whole-number quantity from 1–99.
 - Quantity stays visually absent when it is not needed; selected items with a quantity show that quantity in **Shop** mode.
 - **Shop** mode shows only selected items.
@@ -155,7 +155,7 @@ When an app-shell file changes:
 The current cache is:
 
 ```text
-personal-dashboard-v21
+personal-dashboard-v22
 ```
 
 A README-only change does not require a cache increment because the README is not part of `APP_SHELL`.
