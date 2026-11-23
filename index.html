@@ -245,6 +245,8 @@
       overflow: hidden;
     }
 
+    .month .task { max-height: none; align-items: start; }
+    .month .task > .check { align-self: start; margin-top: 6px; }
     .congregation-subtasks summary { cursor:pointer; min-height:44px; line-height:44px; color:var(--muted); font-size:.85rem; }
     .congregation-subtask { display:grid; grid-template-columns:32px minmax(0,1fr); align-items:center; gap:8px; margin-top:6px; }
     .congregation-subtask input:checked + input { text-decoration:line-through; }
